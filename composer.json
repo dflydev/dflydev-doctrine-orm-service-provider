@@ -1,0 +1,23 @@
+{
+    "name": "dflydev/doctrine-orm-service-provider",
+    "description": "Doctrine ORM Silex Service Provider",
+    "keywords": ["silex", "doctrine", "orm"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dragonfly Development Inc.",
+            "email": "info@dflydev.com",
+            "homepage": "http://dflydev.com"
+        },
+        {
+            "name": "Beau Simensen",
+            "email": "beau@dflydev.com",
+            "homepage": "http://beausimensen.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "silex/silex": "1.*@dev",
+        "doctrine/orm": ">=2.2.3,<2.4-dev"
+    }
+}
