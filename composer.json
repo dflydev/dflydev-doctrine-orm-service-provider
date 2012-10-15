@@ -1,6 +1,6 @@
 {
     "name": "dflydev/doctrine-orm-service-provider",
-    "description": "Doctrine ORM Silex Service Provider",
+    "description": "Doctrine ORM Service Provider",
     "keywords": ["silex", "doctrine", "orm"],
     "license": "MIT",
     "authors": [

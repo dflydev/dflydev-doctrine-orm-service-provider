@@ -1,17 +1,14 @@
-Doctrine ORM Silex Service Provider
-===================================
+Doctrine ORM Service Provider
+=============================
 
-Provide a Doctrine ORM Silex Service Provider.
-
-Extends existing Doctrine Service Provider by adding access to
-Doctrine ORM entity managers.
-
+Provides Doctrine ORM Entity Managers as services to Silex applications.
 
 
 Requirements
 ------------
 
  * PHP 5.3+
+ * Doctrine ~2.3
 
 
 License
