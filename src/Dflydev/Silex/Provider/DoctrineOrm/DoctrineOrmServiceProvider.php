@@ -239,7 +239,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
     protected function getOrmDefaults(Application $app)
     {
         return array(
-            'orm.proxies_dir' => __DIR__.'/../../../../../cache/doctrine/Proxy',
+            'orm.proxies_dir' => __DIR__.'/../../../../../../../../cache/doctrine/proxies',
             'orm.proxies_namespace' => 'DoctrineProxy',
             'orm.auto_generate_proxies' => true,
             'orm.default_cache_driver' => 'array',
