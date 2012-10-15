@@ -11,17 +11,19 @@
 
 namespace Dflydev\Silex\Provider\DoctrineOrm;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Configuration;
-use Doctrine\ORM\Mapping\Driver\DriverChain;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
-use Doctrine\ORM\Mapping\Driver\XmlDriver;
-use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\XcacheCache;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
+use Doctrine\ORM\Configuration;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Mapping\Driver\Driver;
+use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
@@ -44,7 +46,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
      */
     public function register(Application $app)
     {
-        foreach ($this->getOrmDefaults() as $key => $value) {
+        foreach ($this->getOrmDefaults($app) as $key => $value) {
             if (!isset($app[$key])) {
                 $app[$key] = $value;
             }
@@ -52,6 +54,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
         $app['orm.em.default_options'] = array(
             'connection' => 'default',
+            'mappings' => array(),
         );
 
         $app['orm.ems.options.initializer'] = $app->protect(function () use ($app) {
@@ -60,6 +63,8 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             if ($initialized) {
                 return;
             }
+
+            $initialized = true;
 
             if (!isset($app['orm.ems.options'])) {
                 $app['orm.ems.options'] = array('default' => isset($app['orm.em.options']) ? $app['orm.em.options'] : array());
@@ -88,7 +93,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                     $config = $app['orm.ems.config'][$name];
                 }
 
-                $ems[$name] = EntityManager::create($app['dbs'][$options['connection']], $config);
+                $ems[$name] = EntityManager::create(
+                    $app['dbs'][$options['connection']],
+                    $config,
+                    $app['dbs.event_manager'][$options['connection']]
+                );
             }
 
             return $ems;
@@ -101,13 +110,13 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             foreach ($app['orm.ems.options'] as $name => $options) {
                 $config = new Configuration;
 
-                $app['orm.cache.configurer']($config, $options);
+                $app['orm.cache.configurer']($name, $config, $options);
 
                 $config->setProxyDir($app['orm.proxies_dir']);
                 $config->setProxyNamespace($app['orm.proxies_namespace']);
                 $config->setAutoGenerateProxyClasses($app['orm.auto_generate_proxies']);
 
-                $chain = $app['orm.driver_chain.locator']($name);
+                $chain = $app['orm.mapping_driver_chain.locator']($name);
                 foreach ((array) $options['mappings'] as $entity) {
                     switch ($entity['type']) {
                         case 'annotation':
@@ -138,18 +147,18 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return $configs;
         });
 
-        $app['orm.cache.configurer'] = $app->protect(function(Configuration $config, $options) use ($app) {
-            $config->setMetadataCacheImpl($app['orm.cache.locator']('metadata_cache', $options);
-            $config->setQueryCacheImpl($app['orm.cache.locator']('query_cache', $options);
-            $config->setResultCacheImpl($app['orm.cache.locator']('result_cache', $options);
+        $app['orm.cache.configurer'] = $app->protect(function($name, Configuration $config, $options) use ($app) {
+            $config->setMetadataCacheImpl($app['orm.cache.locator']($name, 'metadata', $options));
+            $config->setQueryCacheImpl($app['orm.cache.locator']($name, 'query', $options));
+            $config->setResultCacheImpl($app['orm.cache.locator']($name, 'result', $options));
         });
 
-        $app['orm.cache.locator'] = $app->protect(function($cacheName, $options) use ($app) {
+        $app['orm.cache.locator'] = $app->protect(function($name, $cacheName, $options) use ($app) {
             $driver = isset($options[$cacheName]['driver'])
                 ? $options[$cacheName]['driver']
                 : $app['orm.default_cache_driver'];
 
-            $cacheInstanceKey = 'orm.cache.instances.'.$driver;
+            $cacheInstanceKey = 'orm.cache.instances.'.$name.'.'.$cacheName;
             if (isset($app[$cacheInstanceKey])) {
                 return $app[$cacheInstanceKey];
             }
@@ -177,23 +186,34 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             }
         });
 
-        $app['orm.driver_chain.locator'] = $app->protect(function($name = null) use ($app) {
+        $app['orm.mapping_driver_chain.locator'] = $app->protect(function($name = null) use ($app) {
             $app['orm.ems.options.initializer']();
 
             if (null === $name) {
                 $name = $app['orm.ems.default'];
             }
 
-            $cacheInstanceKey = 'orm.driver_chain.instances.'.$name;
+            $cacheInstanceKey = 'orm.mapping_driver_chain.instances.'.$name;
             if (isset($app[$cacheInstanceKey])) {
                 return $app[$cacheInstanceKey];
             }
 
-            return $app[$cacheInstanceKey] = $app['orm.driver_chain.factory']($name);
+            return $app[$cacheInstanceKey] = $app['orm.mapping_driver_chain.factory']($name);
         });
 
-        $app['orm.driver_chain.factory'] = $app->protect(function($name) use ($app) {
-            return new DriverChain;
+        $app['orm.mapping_driver_chain.factory'] = $app->protect(function($name) use ($app) {
+            return new MappingDriverChain;
+        });
+
+        $app['orm.add_mapping_driver'] = $app->protect(function(MappingDriver $mappingDriver, $namespace, $name = null) use ($app) {
+            $app['orm.ems.options.initializer']();
+
+            if (null === $name) {
+                $name = $app['orm.ems.default'];
+            }
+
+            $driverChain = $app['orm.mapping_driver_chain.locator']($name);
+            $driverChain->addDriver($mappingDriver, $namespace);
         });
 
         $app['orm.em'] = $app->share(function($app) {
@@ -218,7 +238,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
      */
     protected function getOrmDefaults(Application $app)
     {
-        return = array(
+        return array(
             'orm.proxies_dir' => __DIR__.'/../../../../../cache/doctrine/Proxy',
             'orm.proxies_namespace' => 'DoctrineProxy',
             'orm.auto_generate_proxies' => true,
