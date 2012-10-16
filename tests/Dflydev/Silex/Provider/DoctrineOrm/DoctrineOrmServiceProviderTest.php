@@ -97,7 +97,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $app->register(new DoctrineOrmServiceProvider);
 
-        $this->assertContains('/../../../../../cache/doctrine/Proxy', $app['orm.em.config']->getProxyDir());
+        $this->assertContains('/../../../../../../../cache/doctrine/proxies', $app['orm.em.config']->getProxyDir());
         $this->assertEquals('DoctrineProxy', $app['orm.em.config']->getProxyNamespace());
         $this->assertTrue($app['orm.em.config']->getAutoGenerateProxyClasses());
     }
@@ -176,5 +176,51 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $app->register(new DoctrineOrmServiceProvider);
 
         $app['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
+    }
+
+    /**
+     * Test specifying an invalid cache type (just named)
+     */
+    public function testInvalidCacheTypeNamed()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $app->register(new DoctrineOrmServiceProvider, array(
+            'orm.em.options' => array(
+                'query_cache' => 'INVALID',
+            ),
+        ));
+
+        try {
+            $app['orm.em'];
+
+            $this->fail('Expected invalid query cache driver exception');
+        } catch (\RuntimeException $e) {
+            $this->assertEquals("Unsupported cache type 'INVALID' specified", $e->getMessage());
+        }
+    }
+
+    /**
+     * Test specifying an invalid cache type (driver as option)
+     */
+    public function testInvalidCacheTypeDriverAsOption()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $app->register(new DoctrineOrmServiceProvider, array(
+            'orm.em.options' => array(
+                'query_cache' => array(
+                    'driver' => 'INVALID',
+                ),
+            ),
+        ));
+
+        try {
+            $app['orm.em'];
+
+            $this->fail('Expected invalid query cache driver exception');
+        } catch (\RuntimeException $e) {
+            $this->assertEquals("Unsupported cache type 'INVALID' specified", $e->getMessage());
+        }
     }
 }

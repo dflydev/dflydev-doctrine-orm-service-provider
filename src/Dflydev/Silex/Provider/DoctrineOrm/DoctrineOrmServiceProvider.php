@@ -15,6 +15,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\MemcacheCache;
+use Doctrine\Common\Cache\MemcacheCached;
 use Doctrine\Common\Cache\XcacheCache;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
@@ -154,8 +155,16 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         });
 
         $app['orm.cache.locator'] = $app->protect(function($name, $cacheName, $options) use ($app) {
-            $driver = isset($options[$cacheName]['driver'])
-                ? $options[$cacheName]['driver']
+            $cacheNameKey = $cacheName . '_cache';
+
+            if (isset($options[$cacheNameKey]) && !is_array($options[$cacheNameKey])) {
+                $options[$cacheNameKey] = array(
+                    'driver' => $options[$cacheNameKey],
+                );
+            }
+
+            $driver = isset($options[$cacheNameKey]['driver'])
+                ? $options[$cacheNameKey]['driver']
                 : $app['orm.default_cache_driver'];
 
             $cacheInstanceKey = 'orm.cache.instances.'.$name.'.'.$cacheName;
@@ -163,26 +172,73 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 return $app[$cacheInstanceKey];
             }
 
-            $cacheOptions = isset($options[$cacheName]['options'])
-                ? $options[$cacheName]['options']
-                : $app['orm.default_cache_options'];
+            $cacheOptions = array_merge($app['orm.default_cache_options'], $options);
 
             return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $cacheOptions);
+        });
+
+        $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
+            return new \Memcache;
+        });
+
+        $app['orm.cache.factory.memcache'] = $app->protect(function($cacheOptions) use ($app) {
+            if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
+                throw new \RuntimeException('Host and port options need to be specified for memcache cache');
+            }
+
+            $memcache = $app['orm.cache.factory.backing_memcache']();
+            $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
+
+            $cache = new MemcacheCache;
+            $cache->setMemcache($memcache);
+
+            return $cache;
+        });
+
+        $app['orm.cache.factory.backing_memcached'] = $app->protect(function() {
+            return new \Memcached;
+        });
+
+        $app['orm.cache.factory.memcached'] = $app->protect(function($cacheOptions) use ($app) {
+            if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
+                throw new \RuntimeException('Host and port options need to be specified for memcached cache');
+            }
+
+            $memcached = $app['orm.cache.factory.backing_memcached']();
+            $memcached->addServer($cacheOptions['host'], $cacheOptions['port']);
+
+            $cache = new MemcachedCache;
+            $cache->setMemcached($memcache);
+
+            return $cache;
+        });
+
+        $app['orm.cache.factory.array'] = $app->protect(function() {
+            return new ArrayCache;
+        });
+
+        $app['orm.cache.factory.apc'] = $app->protect(function() {
+            return new ApcCache;
+        });
+
+        $app['orm.cache.factory.xcache'] = $app->protect(function() {
+            return new XcacheCache;
         });
 
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
             switch ($driver) {
                 case 'array':
-                    return new ArrayCache;
+                    return $app['orm.cache.factory.array']();
                 case 'apc':
-                    return new ApcCache;
+                    return $app['orm.cache.factory.apc']();
                 case 'xcache':
-                    return new XcacheCache;
+                    return $app['orm.cache.factory.xcache']();
                 case 'memcache':
-                    // @TODO: Finish this.
-                    return new MemcacheCache;
+                    return $app['orm.cache.factory.memcache']($cacheOptions);
+                case 'memcached':
+                    return $app['orm.cache.factory.memcached']($cacheOptions);
                 default:
-                    throw new \RuntimeException("Unsupported cache specified");
+                    throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
         });
 
