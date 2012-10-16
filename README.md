@@ -89,7 +89,8 @@ Community
 ---------
 
 If you have questions or want to help out, join us in the
-[#dflydev][#dflydev] channel on irc.freenode.net.
+[#dflydev][#dflydev] or [#silex-php][#silex-php] channels on
+irc.freenode.net.
 
 
 Not Invented Here
@@ -109,5 +110,6 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
 
 [#dflydev]: irc://irc.freenode.net/#dflydev
+[#silex-php]: irc://irc.freenode.net/#silex-php
 
 
