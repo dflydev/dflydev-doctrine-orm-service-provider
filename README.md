@@ -22,7 +22,8 @@ Requirements
 
 The [Doctrine Service Provider][1] (or something looking a whole lot
 like it) **must** be available in order for Doctrine ORM Service
-Provider to function properly.
+Provider to function properly. Currently requires both **dbs** and **dbs.event_manager** services in order to work. If you can or want
+to fake it, go for it. :)
  
  
 Installation
@@ -77,6 +78,95 @@ the default database connection. It is accessible via **orm.em**.
 // Default entity manager.
 $em = $app['orm.em'];
 ```
+
+Configuration
+-------------
+
+### Parameters
+
+ * **orm.em.options**:
+   Array of Entity Manager options.
+
+   These options are available:
+   * **connection**:
+     String defining which database connection to use. Used when using
+     named databases via **dbs**.
+     *Default: default*
+   * **mappings**:
+     Array of mapping definitions.
+
+     Each mapping definition should be an array with the following
+     options:
+     * **type**: Mapping driver type, one of `annotation`, `xml`, or `yml`.
+     * **path**: Path to where the mapping files are located.
+     * **namespace**: Namespace in which the entities reside.
+   * **query_cache**:
+     String or array describing query cache implementation.
+     *Default: setting specified by orm.default_cache*
+   * **metadata_cache**:
+     String or array describing metadata cache implementation.
+     *Default: setting specified by orm.default_cache*
+   * **result_cache**:
+     String or array describing result cache implementation.
+     *Default: setting specified by orm.default_cache*
+ * **orm.ems.options**:
+   Array of Entity Manager configuration sets indexed by each Entity Manager's
+   name. Each value should look like **orm.em.options**.
+   
+   Example configuration:
+
+   ```php
+   <?php
+   $app['orm.ems.default'] = 'sqlite';
+   $app['orm.ems.options'] = array(
+       'mysql' => array(
+           'connection' => 'mysql',
+           'mappings' => array(), 
+       ),
+       'sqlite' => array(
+           'connection' => 'sqlite',
+           'mappings' => array(),
+       ),
+   );
+   ```
+
+   Example usage:
+
+   ```php
+   <?php
+   $emMysql = $app['orm.ems']['mysql'];
+   $emSqlite = $app['orm.ems']['sqlite'];
+   ```
+ * **orm.ems.default**:
+   String defining the name of the default Entity Manager.
+   *Default: first Entity Manager processed*
+ * **orm.proxies_dir**:
+   String defining path to where Doctrine generated proxies should be located.
+ * **orm.proxies_namespace**:
+   String defining namespace in which Doctrine generated proxies should reside.
+   *Default: DoctrineProxy*
+ * **orm.auto_generate_proxies**:
+   Boolean defining whether or not proxies should be generated automatically.
+ * **orm.default_cache**:
+   String or array describing default cache implementation.
+ * **orm.add_mapping_driver**:
+   Function providing the ability to add a mapping driver to an Entity Manager.
+
+   These params are available:
+    * **$mappingDriver**:
+      Mapping driver to be added,
+      instance `Doctrine\Common\Persistence\Mapping\Driver\MappingDriver`.
+    * **$namespace**:
+      Namespace to be mapped by `$mappingDriver`, string.
+    * **$name**:
+      Name of Entity Manager to add mapping to, string, default `null`.
+
+### Services
+
+ * **orm.em**:
+   Entity Manager, instance `Doctrine\ORM\EntityManager`.
+ * **orm.ems**:
+   Entity Managers, array of `Doctrine\ORM\EntityManager` indexed by name.
 
 
 License

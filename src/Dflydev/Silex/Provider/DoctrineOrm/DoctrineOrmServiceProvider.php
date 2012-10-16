@@ -157,24 +157,28 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         $app['orm.cache.locator'] = $app->protect(function($name, $cacheName, $options) use ($app) {
             $cacheNameKey = $cacheName . '_cache';
 
+            if (!isset($options[$cacheNameKey])) {
+                $options[$cacheNameKey] = $app['orm.default_cache'];
+            }
+
             if (isset($options[$cacheNameKey]) && !is_array($options[$cacheNameKey])) {
                 $options[$cacheNameKey] = array(
                     'driver' => $options[$cacheNameKey],
                 );
             }
 
-            $driver = isset($options[$cacheNameKey]['driver'])
-                ? $options[$cacheNameKey]['driver']
-                : $app['orm.default_cache_driver'];
+            if (!isset($options[$cacheNameKey]['driver'])) {
+                throw new \RuntimeException("No driver specified for '$cacheName'");
+            }
+
+            $driver = $options[$cacheNameKey]['driver'];
 
             $cacheInstanceKey = 'orm.cache.instances.'.$name.'.'.$cacheName;
             if (isset($app[$cacheInstanceKey])) {
                 return $app[$cacheInstanceKey];
             }
 
-            $cacheOptions = array_merge($app['orm.default_cache_options'], $options);
-
-            return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $cacheOptions);
+            return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options);
         });
 
         $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
@@ -298,8 +302,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             'orm.proxies_dir' => __DIR__.'/../../../../../../../../cache/doctrine/proxies',
             'orm.proxies_namespace' => 'DoctrineProxy',
             'orm.auto_generate_proxies' => true,
-            'orm.default_cache_driver' => 'array',
-            'orm.default_cache_options' => array(),
+            'orm.default_cache' => 'array',
         );
     }
 }
