@@ -11,7 +11,6 @@
 
 namespace Dflydev\Silex\Provider\DoctrineOrm;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\MemcacheCache;
@@ -21,7 +20,6 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\Driver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
@@ -121,8 +119,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 foreach ((array) $options['mappings'] as $entity) {
                     switch ($entity['type']) {
                         case 'annotation':
-                            $reader = new AnnotationReader;
-                            $driver = new AnnotationDriver($reader, (array) $entity['path']);
+                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path']);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'yml':
