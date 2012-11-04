@@ -119,7 +119,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 foreach ((array) $options['mappings'] as $entity) {
                     switch ($entity['type']) {
                         case 'annotation':
-                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path']);
+                            $useSimpleAnnotationReader =
+                                isset($entity['use_simple_annotation_reader'])
+                                ? $entity['use_simple_annotation_reader']
+                                : true;
+                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'yml':

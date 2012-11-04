@@ -100,6 +100,10 @@ Configuration
      * **type**: Mapping driver type, one of `annotation`, `xml`, or `yml`.
      * **path**: Path to where the mapping files are located.
      * **namespace**: Namespace in which the entities reside.
+
+     Each **annotation** mapping may also specify the following options:
+     * **use_simple_annotation_reader**: If `true`, the notation `@Entity`
+     will work, otherwise, the notation `@ORM\Entity` will be supported.
    * **query_cache**:
      String or array describing query cache implementation.
      *Default: setting specified by orm.default_cache*
