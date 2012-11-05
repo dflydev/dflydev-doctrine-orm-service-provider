@@ -80,6 +80,16 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $app['orm.ems.options'] = $tmp;
         });
 
+        $app['orm.em_name_from_param_key'] = $app->protect(function ($paramKey) use ($app) {
+            $app['orm.ems.options.initializer']();
+
+            if (isset($app[$paramKey])) {
+                return $app[$paramKey];
+            }
+
+            return $app['orm.ems.default'];
+        });
+
         $app['orm.ems'] = $app->share(function($app) {
             $app['orm.ems.options.initializer']();
 

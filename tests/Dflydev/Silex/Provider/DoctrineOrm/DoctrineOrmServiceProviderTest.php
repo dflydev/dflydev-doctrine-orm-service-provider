@@ -223,4 +223,22 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals("Unsupported cache type 'INVALID' specified", $e->getMessage());
         }
     }
+
+    /**
+     * Test orm.em_name_from_param_key ()
+     */
+    public function testNameFromParamKey()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $app['my.baz'] = 'baz';
+
+        $app->register(new DoctrineOrmServiceProvider, array(
+            'orm.ems.default' => 'foo',
+        ));
+
+        $this->assertEquals('foo', $app['orm.ems.default']);
+        $this->assertEquals('foo', $app['orm.em_name_from_param_key']('my.bar'));
+        $this->assertEquals('baz', $app['orm.em_name_from_param_key']('my.baz'));
+    }
 }
