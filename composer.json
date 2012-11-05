@@ -18,7 +18,10 @@
     "require": {
         "php": ">=5.3.3",
         "silex/silex": "1.*@dev",
-        "doctrine/orm": ">=2.3,<2.4-dev"
+        "doctrine/orm": "~2.3"
+    },
+    "suggest": {
+        "dflydev/psr0-resource-locator-service-provider": "1.*@dev"
     },
     "autoload": {
         "psr-0": {

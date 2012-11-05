@@ -182,6 +182,30 @@ Configuration
 
    This code should be able to be used inside of a 3rd party service provider
    safely, whether the user has defined `3rdparty.provider.em` or not.
+ * **orm.generate_psr0_mapping**:
+   Leverages [dflydev/psr0-resource-locator-service-provider][6] to process
+   a map of namespaceish resource directories to their mapped entities.
+
+   Example usage:
+   ```php
+   <?php
+   $app['orm.ems.config'] = $app->share($app->extend(function ($config, $app)) {
+       $mapping = $app['orm.generate_psr0_mapping'](array(
+           'Path\To\Foo\Resources\mappings' => 'Path\To\Foo\Entities',
+           'Path\To\Bar\Resources\mappings' => 'Path\To\Bar\Entities',
+       ));
+
+       $chain = $app['orm.mapping_driver_chain.locator']();
+
+       foreach ($mapping as $directory => $namespace) {
+           $driver = new XmlDriver($directory, $namespace);
+           $driver->setFileExtension('.xml');
+           $chain->addDriver($driver, $namespace);
+       }
+
+       return $config;
+   });
+   ```
 
 ### Services
 

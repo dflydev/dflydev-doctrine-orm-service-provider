@@ -287,6 +287,16 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $driverChain->addDriver($mappingDriver, $namespace);
         });
 
+        $app['orm.generate_psr0_mapping'] = $app->protect(function($resourceMapping) use ($app) {
+            $mapping = array();
+            foreach ($resourceMapping as $resourceNamespace => $entityNamespace) {
+                $directory = $app['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
+                $mapping[$directory] = $entityNamespace;
+            }
+
+            return $mapping;
+        });
+
         $app['orm.em'] = $app->share(function($app) {
             $ems = $app['orm.ems'];
 
