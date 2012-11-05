@@ -244,6 +244,7 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [3]: https://github.com/docteurklein/SilexServiceProviders
 [4]: https://github.com/doctrine/DoctrineBundle
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
+[6]: http://github.com/dflydev/dflydev-psr0-resource-locator-service-provider
 
 [#dflydev]: irc://irc.freenode.net/#dflydev
 [#silex-php]: irc://irc.freenode.net/#silex-php
