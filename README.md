@@ -24,7 +24,17 @@ The [Doctrine Service Provider][1] (or something looking a whole lot
 like it) **must** be available in order for Doctrine ORM Service
 Provider to function properly. Currently requires both **dbs** and **dbs.event_manager** services in order to work. If you can or want
 to fake it, go for it. :)
- 
+
+
+Optional Dependencies
+---------------------
+
+### PSR-0 Resource Locator Service Provider
+
+An implementation of [dflydev/psr0-resource-locator-service-provider][6]
+is required if using namespaceish resource mapping. See documentation
+for **orm.generate_psr0_mapping** for more information.
+
  
 Installation
 ------------
