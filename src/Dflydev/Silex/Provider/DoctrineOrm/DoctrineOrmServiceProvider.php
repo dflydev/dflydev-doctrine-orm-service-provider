@@ -127,6 +127,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
                 $chain = $app['orm.mapping_driver_chain.locator']($name);
                 foreach ((array) $options['mappings'] as $entity) {
+                    if (!empty($entity['resources_namespace'])) {
+                        $entity['path'] = $app['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
+                    }
+
                     switch ($entity['type']) {
                         case 'annotation':
                             $useSimpleAnnotationReader =

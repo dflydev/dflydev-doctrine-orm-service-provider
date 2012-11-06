@@ -108,12 +108,18 @@ Configuration
      Each mapping definition should be an array with the following
      options:
      * **type**: Mapping driver type, one of `annotation`, `xml`, or `yml`.
-     * **path**: Path to where the mapping files are located.
      * **namespace**: Namespace in which the entities reside.
+
+     Additionally, each mapping definition should contain one of the
+     following options:
+     * **path**: Path to where the mapping files are located. This should
+       be an actual filesystem path.
+     * **resources_namespace**: A namespaceish path to where the mapping
+       files are located. Example: `Path\To\Foo\Resources\mappings`
 
      Each **annotation** mapping may also specify the following options:
      * **use_simple_annotation_reader**: If `true`, the notation `@Entity`
-     will work, otherwise, the notation `@ORM\Entity` will be supported.
+       will work, otherwise, the notation `@ORM\Entity` will be supported.
    * **query_cache**:
      String or array describing query cache implementation.
      *Default: setting specified by orm.default_cache*
