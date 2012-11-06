@@ -198,8 +198,7 @@ Configuration
        $chain = $app['orm.mapping_driver_chain.locator']();
 
        foreach ($mapping as $directory => $namespace) {
-           $driver = new XmlDriver($directory, $namespace);
-           $driver->setFileExtension('.xml');
+           $driver = new XmlDriver($directory);
            $chain->addDriver($driver, $namespace);
        }
 

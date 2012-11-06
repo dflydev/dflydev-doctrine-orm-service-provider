@@ -137,13 +137,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'yml':
-                            $driver = new YamlDriver((array) $entity['path']);
-                            $driver->setFileExtension('.yml');
+                            $driver = new YamlDriver($entity['path']);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'xml':
-                            $driver = new XmlDriver((array) $entity['path'], $entity['namespace']);
-                            $driver->setFileExtension('.xml');
+                            $driver = new XmlDriver($entity['path']);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         default:
