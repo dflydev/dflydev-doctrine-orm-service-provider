@@ -189,7 +189,7 @@ Configuration
    Example usage:
    ```php
    <?php
-   $app['orm.ems.config'] = $app->share($app->extend(function ($config, $app)) {
+   $app['orm.ems.config'] = $app->share('orm.ems.config', $app->extend(function ($config, $app) {
        $mapping = $app['orm.generate_psr0_mapping'](array(
            'Path\To\Foo\Resources\mappings' => 'Path\To\Foo\Entities',
            'Path\To\Bar\Resources\mappings' => 'Path\To\Bar\Entities',
@@ -204,7 +204,7 @@ Configuration
        }
 
        return $config;
-   });
+   }));
    ```
 
 ### Services
