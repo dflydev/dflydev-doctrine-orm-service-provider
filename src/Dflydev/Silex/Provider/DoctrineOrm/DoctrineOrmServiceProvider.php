@@ -289,6 +289,9 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $mapping = array();
             foreach ($resourceMapping as $resourceNamespace => $entityNamespace) {
                 $directory = $app['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
+                if (!$directory) {
+                    throw new \InvalidArgumentException("Resources for mapping '$entityNamespace' could not be located; Looked for mapping resources at '$resourceNamespace'");
+                }
                 $mapping[$directory] = $entityNamespace;
             }
 
