@@ -224,6 +224,24 @@ Configuration
    Entity Managers, array of `Doctrine\ORM\EntityManager` indexed by name.
 
 
+Frequently Asked Questions
+--------------------------
+
+### Why aren't my Annotations classes being found?
+
+When **use_simple_annotation_reader** is set to `False` for an entity,
+the `AnnotationRegistry` needs to have the project's autoloader added
+to it.
+
+Example:
+
+```php
+<?php
+$loader = require __DIR__ . '/../vendor/autoload.php';
+
+\Doctrine\Common\Annotations\AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
+```
+
 License
 -------
 
