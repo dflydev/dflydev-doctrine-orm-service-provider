@@ -69,10 +69,27 @@ $app->register(new DoctrineOrmServiceProvider, array(
     "orm.proxies_dir" => "/path/to/proxies",
     "orm.em.options" => array(
         "mappings" => array(
+            // Using actual filesystem paths
             array(
                 "type" => "annotation",
-                "path" => __DIR__."/Entity",
-                "namespace" => "Entity",
+                "namespace" => "Foo\Entities",
+                "path" => __DIR__."/src/Foo/Entities",
+            ),
+            array(
+                "type" => "xml",
+                "namespace" => "Bat\Entities",
+                "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            // Using PSR-0 namespaceish embedded resources
+            array(
+                "type" => "annotations",
+                "namespace" => "Baz\Entities",
+                "resources_namespace" => "Baz\Entities",
+            ),
+            array(
+                "type" => "xml",
+                "namespace" => "Bar\Entities",
+                "resources_namespace" => "Bar\Resources\mappings",
             ),
         ),
     ),
