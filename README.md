@@ -137,8 +137,8 @@ Configuration
        files are located. Example: `Path\To\Foo\Resources\mappings`
 
      Each **annotation** mapping may also specify the following options:
-     * **use_simple_annotation_reader**: If `true`, the notation `@Entity`
-       will work, otherwise, the notation `@ORM\Entity` will be supported.
+     * **use_simple_annotation_reader**: If `true`, only the notation `@Entity`
+       will work, otherwise, the notation `@ORM\Entity` and similar (`@Doctrine\ORM\Mapping\Entity`, ... and so on) will also be supported.
    * **query_cache**:
      String or array describing query cache implementation.
      *Default: setting specified by orm.default_cache*
