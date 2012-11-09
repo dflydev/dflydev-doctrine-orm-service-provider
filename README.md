@@ -138,13 +138,13 @@ Configuration
 
      Each **annotation** mapping may also specify the following options:
      * **use_simple_annotation_reader**:
-       * If `true`, only simple notations like `@Entity` will work.
-       * If `false`, more advanced notations and aliasing via `use` will
-         work. (Example: `use Doctrine\ORM\Mapping AS ORM`, `@ORM\Entity`)
-
-         Note that if set to `false`, the `AnnotationRegistry` will probably
-         need to be configured correctly. See this FAQ:
-         [Why aren't my Annotations classes being found?](#why-arent-my-annotations-classes-being-found)
+       If `true`, only simple notations like `@Entity` will work.
+       If `false`, more advanced notations and aliasing via `use` will
+       work. (Example: `use Doctrine\ORM\Mapping AS ORM`, `@ORM\Entity`)
+       Note that if set to `false`, the `AnnotationRegistry` will probably
+       need to be configured correctly so that it can load your Annotations
+       classes. See this FAQ:
+       [Why aren't my Annotations classes being found?](#why-arent-my-annotations-classes-being-found)
    * **query_cache**:
      String or array describing query cache implementation.
      *Default: setting specified by orm.default_cache*
