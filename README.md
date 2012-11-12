@@ -230,7 +230,7 @@ Configuration
    Example usage:
    ```php
    <?php
-   $app['orm.ems.config'] = $app->share('orm.ems.config', $app->extend(function ($config, $app) {
+   $app['orm.ems.config'] = $app->share($app->extend('orm.ems.config', function ($config, $app) {
        $mapping = $app['orm.generate_psr0_mapping'](array(
            'Foo\Resources\mappings' => 'Foo\Entities',
            'Bar\Resources\mappings' => 'Bar\Entities',
