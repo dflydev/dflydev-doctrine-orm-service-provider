@@ -1,8 +1,15 @@
 <?php
 
-namespace Dflydev\Silex\Provider\DoctrineOrm;
+/*
+ * This file is a part of dflydev/doctrine-orm-service-provider.
+ *
+ * (c) Dragonfly Development Inc.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-use Silex\Application;
+namespace Dflydev\Pimple\Provider\DoctrineOrm;
 
 /**
  * DoctrineOrmServiceProvider Test.
@@ -13,7 +20,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected function createMockDefaultAppAndDeps()
     {
-        $app = new Application;
+        $app = new \Pimple;
 
         $eventManager = $this->getMock('Doctrine\Common\EventManager');
         $connection = $this
@@ -51,7 +58,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getQueryCacheImpl());
@@ -79,7 +87,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
         $this->assertEquals($queryCache, $app['orm.em.config']->getQueryCacheImpl());
@@ -95,7 +104,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $this->assertContains('/../../../../../../../cache/doctrine/proxies', $app['orm.em.config']->getProxyDir());
         $this->assertEquals('DoctrineProxy', $app['orm.em.config']->getProxyNamespace());
@@ -109,11 +119,12 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider, array(
-            'orm.proxies_dir' => '/path/to/proxies',
-            'orm.proxies_namespace' => 'TestDoctrineOrmProxiesNamespace',
-            'orm.auto_generate_proxies' => false,
-        ));
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $app['orm.proxies_dir'] = '/path/to/proxies';
+        $app['orm.proxies_namespace'] = 'TestDoctrineOrmProxiesNamespace';
+        $app['orm.auto_generate_proxies'] = false;
 
         $this->assertEquals('/path/to/proxies', $app['orm.em.config']->getProxyDir());
         $this->assertEquals('TestDoctrineOrmProxiesNamespace', $app['orm.em.config']->getProxyNamespace());
@@ -127,7 +138,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $default = $app['orm.mapping_driver_chain.locator']();
         $this->assertEquals($default, $app['orm.mapping_driver_chain.locator']('default'));
@@ -151,7 +163,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $app['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
     }
@@ -173,7 +186,8 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $app->register(new DoctrineOrmServiceProvider);
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
 
         $app['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
     }
@@ -185,11 +199,12 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider, array(
-            'orm.em.options' => array(
-                'query_cache' => 'INVALID',
-            ),
-        ));
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $app['orm.em.options'] = array(
+            'query_cache' => 'INVALID',
+        );
 
         try {
             $app['orm.em'];
@@ -207,13 +222,14 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     {
         $app = $this->createMockDefaultApp();
 
-        $app->register(new DoctrineOrmServiceProvider, array(
-            'orm.em.options' => array(
-                'query_cache' => array(
-                    'driver' => 'INVALID',
-                ),
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $app['orm.em.options'] = array(
+            'query_cache' => array(
+                'driver' => 'INVALID',
             ),
-        ));
+        );
 
         try {
             $app['orm.em'];
@@ -233,9 +249,10 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $app['my.baz'] = 'baz';
 
-        $app->register(new DoctrineOrmServiceProvider, array(
-            'orm.ems.default' => 'foo',
-        ));
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $app['orm.ems.default'] = 'foo';
 
         $this->assertEquals('foo', $app['orm.ems.default']);
         $this->assertEquals('foo', $app['orm.em_name_from_param_key']('my.bar'));
