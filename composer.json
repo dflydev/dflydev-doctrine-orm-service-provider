@@ -17,14 +17,20 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "silex/silex": "1.*@dev",
+        "pimple/pimple": "1.*@dev",
         "doctrine/orm": "~2.3"
+    },
+    "require-dev": {
+        "cilex/cilex": "1.*@dev",
+        "silex/silex": "1.*@dev"
     },
     "suggest": {
         "dflydev/psr0-resource-locator-service-provider": "1.0.*@dev"
     },
     "autoload": {
         "psr-0": {
+            "Dflydev\\Cilex\\Provider\\DoctrineOrm": "src",
+            "Dflydev\\Pimple\\Provider\\DoctrineOrm": "src",
             "Dflydev\\Silex\\Provider\\DoctrineOrm": "src"
         }
     },

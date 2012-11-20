@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Dflydev\Silex\Provider\DoctrineOrm;
+namespace Dflydev\Cilex\Provider\DoctrineOrm;
 
 use Dflydev\Pimple\Provider\DoctrineOrm\DoctrineOrmServiceProvider as PimpleDoctrineOrmServiceProvider;
-use Silex\Application;
-use Silex\ServiceProviderInterface;
+use Cilex\Application;
+use Cilex\ServiceProviderInterface;
 
 /**
- * Doctrine ORM Silex Service Provider.
+ * Doctrine ORM Cilex Service Provider.
  *
  * @author Beau Simensen <beau@dflydev.com>
  */
