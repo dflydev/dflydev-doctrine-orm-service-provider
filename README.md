@@ -21,11 +21,10 @@ Requirements
  * PHP 5.3+
  * Doctrine ~2.3
 
-The [Doctrine Service Provider][1] (or something looking a whole lot
-like it) **must** be available in order for Doctrine ORM Service
-Provider to function properly. Currently requires both **dbs** and
-**dbs.event_manager** services in order to work. If you can or want
-to fake it, go for it. :)
+Currently requires both **dbs** and **dbs.event_manager** services in
+order to work. These can be provided by a Doctrine Service Provider
+like the [Silex][1] or [Cilex][8] service providers. If you can or
+want to fake it, go for it. :)
 
 
 Optional Dependencies
@@ -50,6 +49,17 @@ Usage
 To get up and running, register `DoctrineOrmServiceProvider` and
 manually specify the directory that will contain the proxies along
 with at least one mapping.
+
+In each of these examples an Entity Manager that is bound to the
+default database connection will be provided. It will be accessible
+via **orm.em**.
+
+```php
+<?php
+
+// Default entity manager.
+$em = $app['orm.em'];
+```
 
 ### Pimple
 
@@ -111,7 +121,7 @@ use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Silex\Application;
 use Silex\Provider\DoctrineServiceProvider;
 
-$app = new Applicaton;
+$app = new Application;
 
 $app->register(new DoctrineServiceProvider, array(
     "db.options" => array(
@@ -153,15 +163,26 @@ $app->register(new DoctrineOrmServiceProvider, array(
 ));
 ```
 
-This will provide access to an Entity Manager that is bound to
-the default database connection. It is accessible via **orm.em**.
+### Cilex
 
 ```php
 <?php
 
-// Default entity manager.
-$em = $app['orm.em'];
+use Dflydev\Cilex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Cilex\Application;
+use Cilex\Provider\DoctrineServiceProvider;
+
+$app = new Application('My Application');
+
+$app->register(new DoctrineServiceProvider, array(
+    /** same as the Silex example **/
+));
+
+$app->register(new DoctrineOrmServiceProvider, array(
+    /** same as the Silex example **/
+));
 ```
+
 
 Configuration
 -------------
@@ -359,6 +380,7 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
 [6]: http://github.com/dflydev/dflydev-psr0-resource-locator-service-provider
 [7]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
+[8]: https://github.com/Cilex/Cilex/blob/master/src/Cilex/Provider/DoctrineServiceProvider.php
 
 [#dflydev]: irc://irc.freenode.net/#dflydev
 [#silex-php]: irc://irc.freenode.net/#silex-php
