@@ -96,7 +96,7 @@ $container["orm.em.options"] = array(
         // (requires registering a PSR-0 Resource Locator
         // Service Provider)
         array(
-            "type" => "annotations",
+            "type" => "annotation",
             "namespace" => "Baz\Entities",
             "resources_namespace" => "Baz\Entities",
         ),
@@ -149,7 +149,7 @@ $app->register(new DoctrineOrmServiceProvider, array(
             // (requires registering a PSR-0 Resource Locator
             // Service Provider)
             array(
-                "type" => "annotations",
+                "type" => "annotation",
                 "namespace" => "Baz\Entities",
                 "resources_namespace" => "Baz\Entities",
             ),
