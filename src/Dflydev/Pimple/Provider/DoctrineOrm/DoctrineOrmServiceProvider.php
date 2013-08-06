@@ -195,9 +195,11 @@ class DoctrineOrmServiceProvider
             return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options);
         });
 
-        $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
-            return new \Memcache;
-        });
+        if (false === isset($app['orm.cache.factory.backing_memcache'])) {
+            $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
+                return new \Memcache;
+            });
+        }
 
         $app['orm.cache.factory.memcache'] = $app->protect(function($cacheOptions) use ($app) {
             if (empty($cacheOptions['host'])) {
@@ -209,7 +211,7 @@ class DoctrineOrmServiceProvider
                 $port = $cacheOptions['port'];
             }
 
-            $memcache = $app['orm.cache.factory.backing_memcache']();
+            $memcache = $app['orm.cache.factory.backing_memcache'];
             $memcache->connect($cacheOptions['host'], $port);
 
             $cache = new MemcacheCache;
