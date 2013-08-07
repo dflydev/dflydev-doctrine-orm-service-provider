@@ -211,7 +211,11 @@ class DoctrineOrmServiceProvider
                 $port = $cacheOptions['port'];
             }
 
-            $memcache = $app['orm.cache.factory.backing_memcache'];
+            if ($app['orm.cache.factory.backing_memcache'] instanceof \Memcache) {
+                $memcache = $app['orm.cache.factory.backing_memcache'];
+            } else {
+                $memcache = $app['orm.cache.factory.backing_memcache']();
+            }
             $memcache->addServer($cacheOptions['host'], $port);
 
             $cache = new MemcacheCache;
