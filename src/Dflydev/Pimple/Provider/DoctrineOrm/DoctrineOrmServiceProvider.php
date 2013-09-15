@@ -110,6 +110,9 @@ class DoctrineOrmServiceProvider
             foreach ($app['orm.ems.options'] as $name => $options) {
                 $config = new Configuration;
 
+
+
+
                 $app['orm.cache.configurer']($name, $config, $options);
 
                 $config->setProxyDir($app['orm.proxies_dir']);
@@ -192,7 +195,17 @@ class DoctrineOrmServiceProvider
                 return $app[$cacheInstanceKey];
             }
 
-            return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
+            $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options);
+
+            //https://github.com/dflydev/dflydev-doctrine-orm-service-provider/issues/15
+            if( isset($options["cache_namespace"]) &&
+                is_subclass_of($app[$cacheInstanceKey],'\Doctrine\Common\Cache\CacheProvider')){
+
+                   $app[$cacheInstanceKey]->setNamespace($options["cache_namespace"]);
+
+            }
+
+            return $app[$cacheInstanceKey];
         });
 
         $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
@@ -236,7 +249,7 @@ class DoctrineOrmServiceProvider
         });
 
         $app['orm.cache.factory.apc'] = $app->protect(function() {
-            return new ApcCache;
+            return new ApcCache();
         });
 
         $app['orm.cache.factory.xcache'] = $app->protect(function() {
@@ -244,11 +257,13 @@ class DoctrineOrmServiceProvider
         });
 
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
+
+
             switch ($driver) {
                 case 'array':
                     return $app['orm.cache.factory.array']();
                 case 'apc':
-                    return $app['orm.cache.factory.apc']();
+                    return $app['orm.cache.factory.apc']($cacheOptions);
                 case 'xcache':
                     return $app['orm.cache.factory.xcache']();
                 case 'memcache':
