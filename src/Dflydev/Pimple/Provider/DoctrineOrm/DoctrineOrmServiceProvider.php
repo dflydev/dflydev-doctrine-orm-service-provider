@@ -192,7 +192,17 @@ class DoctrineOrmServiceProvider
                 return $app[$cacheInstanceKey];
             }
 
-            return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
+            $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options);
+
+            //https://github.com/dflydev/dflydev-doctrine-orm-service-provider/issues/15
+            if( isset($options["cache_namespace"]) &&
+                is_subclass_of($app[$cacheInstanceKey],'\Doctrine\Common\Cache\CacheProvider')){
+
+                   $app[$cacheInstanceKey]->setNamespace($options["cache_namespace"]);
+
+            }
+
+            return $app[$cacheInstanceKey];
         });
 
         $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
@@ -244,6 +254,7 @@ class DoctrineOrmServiceProvider
         });
 
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
+
             switch ($driver) {
                 case 'array':
                     return $app['orm.cache.factory.array']();
