@@ -110,9 +110,6 @@ class DoctrineOrmServiceProvider
             foreach ($app['orm.ems.options'] as $name => $options) {
                 $config = new Configuration;
 
-
-
-
                 $app['orm.cache.configurer']($name, $config, $options);
 
                 $config->setProxyDir($app['orm.proxies_dir']);
@@ -249,7 +246,7 @@ class DoctrineOrmServiceProvider
         });
 
         $app['orm.cache.factory.apc'] = $app->protect(function() {
-            return new ApcCache();
+            return new ApcCache;
         });
 
         $app['orm.cache.factory.xcache'] = $app->protect(function() {
@@ -258,12 +255,11 @@ class DoctrineOrmServiceProvider
 
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
 
-
             switch ($driver) {
                 case 'array':
                     return $app['orm.cache.factory.array']();
                 case 'apc':
-                    return $app['orm.cache.factory.apc']($cacheOptions);
+                    return $app['orm.cache.factory.apc']();
                 case 'xcache':
                     return $app['orm.cache.factory.xcache']();
                 case 'memcache':
