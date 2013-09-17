@@ -213,7 +213,8 @@ Configuration
        files are located. Example: `Path\To\Foo\Resources\mappings`
 
      Each **annotation** mapping may also specify the following options:
-     * **use_simple_annotation_reader** (Default: true):
+     * **alias** (Default: null): Set the alias for the entity namespace.
+       **use_simple_annotation_reader** (Default: true):
        If `true`, only simple notations like `@Entity` will work.
        If `false`, more advanced notations and aliasing via `use` will
        work. (Example: `use Doctrine\ORM\Mapping AS ORM`, `@ORM\Entity`)
