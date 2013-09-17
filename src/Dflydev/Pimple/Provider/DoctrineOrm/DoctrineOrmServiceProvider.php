@@ -13,6 +13,7 @@ namespace Dflydev\Pimple\Provider\DoctrineOrm;
 
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\MemcachedCache;
 use Doctrine\Common\Cache\XcacheCache;
@@ -192,7 +193,13 @@ class DoctrineOrmServiceProvider
                 return $app[$cacheInstanceKey];
             }
 
-            return $app[$cacheInstanceKey] = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
+            $cache = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
+
+            if(isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
+                $cache->setNamespace($options['cache_namespace']);
+            }
+
+            return $app[$cacheInstanceKey] = $cache;
         });
 
         $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
