@@ -214,7 +214,7 @@ Configuration
 
      Each **annotation** mapping may also specify the following options:
      * **alias** (Default: null): Set the alias for the entity namespace.
-       **use_simple_annotation_reader** (Default: true):
+     * **use_simple_annotation_reader** (Default: true):
        If `true`, only simple notations like `@Entity` will work.
        If `false`, more advanced notations and aliasing via `use` will
        work. (Example: `use Doctrine\ORM\Mapping AS ORM`, `@ORM\Entity`)
