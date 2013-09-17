@@ -129,6 +129,10 @@ class DoctrineOrmServiceProvider
                         $entity['path'] = $app['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
                     }
 
+                    if (isset($entity['alias'])) {
+                        $config->addEntityNamespace($entity['alias'], $entity['namespace']);
+                    }
+
                     switch ($entity['type']) {
                         case 'annotation':
                             $useSimpleAnnotationReader =
