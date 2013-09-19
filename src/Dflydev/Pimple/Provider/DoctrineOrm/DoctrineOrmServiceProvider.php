@@ -206,17 +206,28 @@ class DoctrineOrmServiceProvider
             return $app[$cacheInstanceKey] = $cache;
         });
 
-        $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
-            return new \Memcache;
-        });
+        if (false === isset($app['orm.cache.factory.backing_memcache'])) {
+            $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
+                return new \Memcache;
+            });
+        }
 
         $app['orm.cache.factory.memcache'] = $app->protect(function($cacheOptions) use ($app) {
-            if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
-                throw new \RuntimeException('Host and port options need to be specified for memcache cache');
+            if (empty($cacheOptions['host'])) {
+                throw new \RuntimeException('Host needs to be specified for memcache cache');
             }
 
-            $memcache = $app['orm.cache.factory.backing_memcache']();
-            $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
+            $port = 11211;
+            if ($cacheOptions['port']) {
+                $port = $cacheOptions['port'];
+            }
+
+            if ($app['orm.cache.factory.backing_memcache'] instanceof \Memcache) {
+                $memcache = $app['orm.cache.factory.backing_memcache'];
+            } else {
+                $memcache = $app['orm.cache.factory.backing_memcache']();
+            }
+            $memcache->addServer($cacheOptions['host'], $port);
 
             $cache = new MemcacheCache;
             $cache->setMemcache($memcache);
