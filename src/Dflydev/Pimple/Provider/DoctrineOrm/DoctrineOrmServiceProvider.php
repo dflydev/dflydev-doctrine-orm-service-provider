@@ -137,8 +137,8 @@ class DoctrineOrmServiceProvider
                         case 'annotation':
                             $useSimpleAnnotationReader =
                                 isset($entity['use_simple_annotation_reader'])
-                                    ? $entity['use_simple_annotation_reader']
-                                    : true;
+                                ? $entity['use_simple_annotation_reader']
+                                : true;
                             $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
