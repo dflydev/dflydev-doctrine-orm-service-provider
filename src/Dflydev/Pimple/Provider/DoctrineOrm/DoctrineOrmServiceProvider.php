@@ -137,8 +137,8 @@ class DoctrineOrmServiceProvider
                         case 'annotation':
                             $useSimpleAnnotationReader =
                                 isset($entity['use_simple_annotation_reader'])
-                                ? $entity['use_simple_annotation_reader']
-                                : true;
+                                    ? $entity['use_simple_annotation_reader']
+                                    : true;
                             $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
@@ -254,6 +254,13 @@ class DoctrineOrmServiceProvider
             return new XcacheCache;
         });
 
+        $app['orm.cache.factory.filesystem'] = $app->protect(function() use ($app) {
+            if (empty($app['orm.cache.path'])) {
+                throw new \RuntimeException('FilesystemCache not defined');
+            }
+            return new FilesystemCache($app['orm.cache.path']);
+        });
+
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
             switch ($driver) {
                 case 'array':
@@ -266,6 +273,8 @@ class DoctrineOrmServiceProvider
                     return $app['orm.cache.factory.memcache']($cacheOptions);
                 case 'memcached':
                     return $app['orm.cache.factory.memcached']($cacheOptions);
+                case 'filesystem':
+                    return $app['orm.cache.factory.filesystem']();
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
