@@ -14,6 +14,7 @@ namespace Dflydev\Pimple\Provider\DoctrineOrm;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\CacheProvider;
+use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\MemcachedCache;
 use Doctrine\Common\Cache\XcacheCache;
@@ -254,6 +255,13 @@ class DoctrineOrmServiceProvider
             return new XcacheCache;
         });
 
+        $app['orm.cache.factory.filesystem'] = $app->protect(function($cacheOptions) {
+            if (empty($cacheOptions['path'])) {
+                throw new \RuntimeException('FilesystemCache path not defined');
+            }
+            return new FilesystemCache($cacheOptions['path']);
+        });
+
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
             switch ($driver) {
                 case 'array':
@@ -266,6 +274,8 @@ class DoctrineOrmServiceProvider
                     return $app['orm.cache.factory.memcache']($cacheOptions);
                 case 'memcached':
                     return $app['orm.cache.factory.memcached']($cacheOptions);
+                case 'filesystem':
+                    return $app['orm.cache.factory.filesystem']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
