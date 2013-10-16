@@ -1,3 +1,7 @@
+## v1.0.x-dev
+
+ * @Richard-NL: Filesystem cache (#19)
+
 ## v1.0.2 (2013-09-19)
 
  * @marcojanssen: Added alias mapping option for entity namespaces (#18)
