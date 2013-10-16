@@ -256,7 +256,7 @@ class DoctrineOrmServiceProvider
 
         $app['orm.cache.factory.filesystem'] = $app->protect(function() use ($app) {
             if (empty($app['orm.cache.path'])) {
-                throw new \RuntimeException('FilesystemCache not defined');
+                throw new \RuntimeException('FilesystemCache path not defined');
             }
             return new FilesystemCache($app['orm.cache.path']);
         });
