@@ -255,11 +255,11 @@ class DoctrineOrmServiceProvider
             return new XcacheCache;
         });
 
-        $app['orm.cache.factory.filesystem'] = $app->protect(function() use ($app) {
-            if (empty($app['orm.cache.path'])) {
+        $app['orm.cache.factory.filesystem'] = $app->protect(function($cacheOptions) {
+            if (empty($cacheOptions['path'])) {
                 throw new \RuntimeException('FilesystemCache path not defined');
             }
-            return new FilesystemCache($app['orm.cache.path']);
+            return new FilesystemCache($cacheOptions['path']);
         });
 
         $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
@@ -275,7 +275,7 @@ class DoctrineOrmServiceProvider
                 case 'memcached':
                     return $app['orm.cache.factory.memcached']($cacheOptions);
                 case 'filesystem':
-                    return $app['orm.cache.factory.filesystem']();
+                    return $app['orm.cache.factory.filesystem']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
