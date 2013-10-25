@@ -1,5 +1,6 @@
-## v1.0.x-dev
+## v1.0.3 (2013-10-25)
 
+ * @tdbui83: Redis cache (#20)
  * @Richard-NL: Filesystem cache (#19)
 
 ## v1.0.2 (2013-09-19)
