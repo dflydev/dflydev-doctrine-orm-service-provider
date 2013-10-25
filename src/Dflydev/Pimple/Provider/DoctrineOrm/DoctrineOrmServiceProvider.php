@@ -18,6 +18,7 @@ use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\MemcachedCache;
 use Doctrine\Common\Cache\XcacheCache;
+use Doctrine\Common\Cache\RedisCache;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\ORM\Configuration;
@@ -243,6 +244,24 @@ class DoctrineOrmServiceProvider
             return $cache;
         });
 
+        $app['orm.cache.factory.backing_redis'] = $app->protect(function() {
+            return new \Redis;
+        });
+
+        $app['orm.cache.factory.redis'] = $app->protect(function($cacheOptions) use ($app) {
+            if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
+                throw new \RuntimeException('Host and port options need to be specified for redis cache');
+            }
+
+            $redis = $app['orm.cache.factory.backing_redis']();
+            $redis->connect($cacheOptions['host'], $cacheOptions['port']);
+
+            $cache = new RedisCache;
+            $cache->setRedis($redis);
+
+            return $cache;
+        });
+
         $app['orm.cache.factory.array'] = $app->protect(function() {
             return new ArrayCache;
         });
@@ -276,6 +295,8 @@ class DoctrineOrmServiceProvider
                     return $app['orm.cache.factory.memcached']($cacheOptions);
                 case 'filesystem':
                     return $app['orm.cache.factory.filesystem']($cacheOptions);
+                case 'redis':
+                    return $app['orm.cache.factory.redis']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
