@@ -47,6 +47,7 @@ class DoctrineOrmServiceProvider
         $app['orm.em.default_options'] = array(
             'connection' => 'default',
             'mappings' => array(),
+            'types' => array()
         );
 
         $app['orm.ems.options.initializer'] = $app->protect(function () use ($app) {
