@@ -9,20 +9,22 @@
  * file that was distributed with this source code.
  */
 
-namespace Dflydev\Cilex\Provider\DoctrineOrm;
+namespace Dflydev\Tests\Silex\Provider\DoctrineOrm;
 
-use Cilex\Application;
+use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Pimple\Container;
+use Silex\Application;
 
 /**
  * DoctrineOrmServiceProvider Test.
  *
  * @author Beau Simensen <beau@dflydev.com>
  */
-class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
+class DoctrineormServiceProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected function createMockDefaultAppAndDeps()
     {
-        $app = new Application('test');
+        $app = new Application;
 
         $eventManager = $this->getMock('Doctrine\Common\EventManager');
         $connection = $this
@@ -35,17 +37,20 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ->method('getEventManager')
             ->will($this->returnValue($eventManager));
 
-        $app['dbs'] = new \Pimple(array(
+        $app['dbs'] = new Container(array(
             'default' => $connection,
         ));
 
-        $app['dbs.event_manager'] = new \Pimple(array(
+        $app['dbs.event_manager'] = new Container(array(
             'default' => $eventManager,
         ));
 
         return array($app, $connection, $eventManager);;
     }
 
+    /**
+     * @return Container
+     */
     protected function createMockDefaultApp()
     {
         list ($app, $connection, $eventManager) = $this->createMockDefaultAppAndDeps();

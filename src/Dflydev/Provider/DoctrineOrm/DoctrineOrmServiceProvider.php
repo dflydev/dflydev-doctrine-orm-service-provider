@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Dflydev\Pimple\Provider\DoctrineOrm;
+namespace Dflydev\Provider\DoctrineOrm;
 
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
@@ -24,33 +24,34 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\Driver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
+use Pimple\Container;
+use Pimple\ServiceProviderInterface;
 
 /**
  * Doctrine ORM Pimple Service Provider.
  *
  * @author Beau Simensen <beau@dflydev.com>
  */
-class DoctrineOrmServiceProvider
+class DoctrineOrmServiceProvider implements ServiceProviderInterface
 {
-    public function register(\Pimple $app)
+    public function register(Container $container)
     {
-        foreach ($this->getOrmDefaults($app) as $key => $value) {
-            if (!isset($app[$key])) {
-                $app[$key] = $value;
+        foreach ($this->getOrmDefaults($container) as $key => $value) {
+            if (!isset($container[$key])) {
+                $container[$key] = $value;
             }
         }
 
-        $app['orm.em.default_options'] = array(
+        $container['orm.em.default_options'] = array(
             'connection' => 'default',
             'mappings' => array(),
             'types' => array()
         );
 
-        $app['orm.ems.options.initializer'] = $app->protect(function () use ($app) {
+        $container['orm.ems.options.initializer'] = $container->protect(function () use ($container) {
             static $initialized = false;
 
             if ($initialized) {
@@ -59,69 +60,70 @@ class DoctrineOrmServiceProvider
 
             $initialized = true;
 
-            if (!isset($app['orm.ems.options'])) {
-                $app['orm.ems.options'] = array('default' => isset($app['orm.em.options']) ? $app['orm.em.options'] : array());
+            if (!isset($container['orm.ems.options'])) {
+                $container['orm.ems.options'] = array('default' => isset($container['orm.em.options']) ? $container['orm.em.options'] : array());
             }
 
-            $tmp = $app['orm.ems.options'];
+            $tmp = $container['orm.ems.options'];
             foreach ($tmp as $name => &$options) {
-                $options = array_replace($app['orm.em.default_options'], $options);
+                $options = array_replace($container['orm.em.default_options'], $options);
 
-                if (!isset($app['orm.ems.default'])) {
-                    $app['orm.ems.default'] = $name;
+                if (!isset($container['orm.ems.default'])) {
+                    $container['orm.ems.default'] = $name;
                 }
             }
-            $app['orm.ems.options'] = $tmp;
+            $container['orm.ems.options'] = $tmp;
         });
 
-        $app['orm.em_name_from_param_key'] = $app->protect(function ($paramKey) use ($app) {
-            $app['orm.ems.options.initializer']();
+        $container['orm.em_name_from_param_key'] = $container->protect(function ($paramKey) use ($container) {
+            $container['orm.ems.options.initializer']();
 
-            if (isset($app[$paramKey])) {
-                return $app[$paramKey];
+            if (isset($container[$paramKey])) {
+                return $container[$paramKey];
             }
 
-            return $app['orm.ems.default'];
+            return $container['orm.ems.default'];
         });
 
-        $app['orm.ems'] = $app->share(function($app) {
-            $app['orm.ems.options.initializer']();
+        $container['orm.ems'] = function ($container) {
+            $container['orm.ems.options.initializer']();
 
-            $ems = new \Pimple();
-            foreach ($app['orm.ems.options'] as $name => $options) {
-                if ($app['orm.ems.default'] === $name) {
+            $ems = new Container();
+            foreach ($container['orm.ems.options'] as $name => $options) {
+                if ($container['orm.ems.default'] === $name) {
                     // we use shortcuts here in case the default has been overridden
-                    $config = $app['orm.em.config'];
+                    $config = $container['orm.em.config'];
                 } else {
-                    $config = $app['orm.ems.config'][$name];
+                    $config = $container['orm.ems.config'][$name];
                 }
 
-                $ems[$name] = $app->share(function ($ems) use ($app, $options, $config) {
+                $ems[$name] = function ($ems) use ($container, $options, $config) {
                     return EntityManager::create(
-                        $app['dbs'][$options['connection']],
+                        $container['dbs'][$options['connection']],
                         $config,
-                        $app['dbs.event_manager'][$options['connection']]
+                        $container['dbs.event_manager'][$options['connection']]
                     );
-                });
+                };
             }
 
             return $ems;
-        });
+        };
 
-        $app['orm.ems.config'] = $app->share(function($app) {
-            $app['orm.ems.options.initializer']();
+        $container['orm.ems.config'] = function ($container) {
+            $container['orm.ems.options.initializer']();
 
             $configs = new \Pimple();
-            foreach ($app['orm.ems.options'] as $name => $options) {
+            foreach ($container['orm.ems.options'] as $name => $options) {
                 $config = new Configuration;
 
-                $app['orm.cache.configurer']($name, $config, $options);
+                $container['orm.cache.configurer']($name, $config, $options);
 
-                $config->setProxyDir($app['orm.proxies_dir']);
-                $config->setProxyNamespace($app['orm.proxies_namespace']);
-                $config->setAutoGenerateProxyClasses($app['orm.auto_generate_proxies']);
+                $config->setProxyDir($container['orm.proxies_dir']);
+                $config->setProxyNamespace($container['orm.proxies_namespace']);
+                $config->setAutoGenerateProxyClasses($container['orm.auto_generate_proxies']);
 
-                $chain = $app['orm.mapping_driver_chain.locator']($name);
+                /** @var MappingDriverChain $chain */
+                $chain = $container['orm.mapping_driver_chain.locator']($name);
                 foreach ((array) $options['mappings'] as $entity) {
                     if (!is_array($entity)) {
                         throw new \InvalidArgumentException(
@@ -130,7 +132,7 @@ class DoctrineOrmServiceProvider
                     }
 
                     if (!empty($entity['resources_namespace'])) {
-                        $entity['path'] = $app['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
+                        $entity['path'] = $container['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
                     }
 
                     if (isset($entity['alias'])) {
@@ -177,19 +179,19 @@ class DoctrineOrmServiceProvider
             }
 
             return $configs;
+        };
+
+        $container['orm.cache.configurer'] = $container->protect(function ($name, Configuration $config, $options) use ($container) {
+            $config->setMetadataCacheImpl($container['orm.cache.locator']($name, 'metadata', $options));
+            $config->setQueryCacheImpl($container['orm.cache.locator']($name, 'query', $options));
+            $config->setResultCacheImpl($container['orm.cache.locator']($name, 'result', $options));
         });
 
-        $app['orm.cache.configurer'] = $app->protect(function($name, Configuration $config, $options) use ($app) {
-            $config->setMetadataCacheImpl($app['orm.cache.locator']($name, 'metadata', $options));
-            $config->setQueryCacheImpl($app['orm.cache.locator']($name, 'query', $options));
-            $config->setResultCacheImpl($app['orm.cache.locator']($name, 'result', $options));
-        });
-
-        $app['orm.cache.locator'] = $app->protect(function($name, $cacheName, $options) use ($app) {
+        $container['orm.cache.locator'] = $container->protect(function ($name, $cacheName, $options) use ($container) {
             $cacheNameKey = $cacheName . '_cache';
 
             if (!isset($options[$cacheNameKey])) {
-                $options[$cacheNameKey] = $app['orm.default_cache'];
+                $options[$cacheNameKey] = $container['orm.default_cache'];
             }
 
             if (isset($options[$cacheNameKey]) && !is_array($options[$cacheNameKey])) {
@@ -205,29 +207,30 @@ class DoctrineOrmServiceProvider
             $driver = $options[$cacheNameKey]['driver'];
 
             $cacheInstanceKey = 'orm.cache.instances.'.$name.'.'.$cacheName;
-            if (isset($app[$cacheInstanceKey])) {
-                return $app[$cacheInstanceKey];
+            if (isset($container[$cacheInstanceKey])) {
+                return $container[$cacheInstanceKey];
             }
 
-            $cache = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
+            $cache = $container['orm.cache.factory']($driver, $options[$cacheNameKey]);
 
-            if(isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
+            if (isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
                 $cache->setNamespace($options['cache_namespace']);
             }
 
-            return $app[$cacheInstanceKey] = $cache;
+            return $container[$cacheInstanceKey] = $cache;
         });
 
-        $app['orm.cache.factory.backing_memcache'] = $app->protect(function() {
+        $container['orm.cache.factory.backing_memcache'] = $container->protect(function () {
             return new \Memcache;
         });
 
-        $app['orm.cache.factory.memcache'] = $app->protect(function($cacheOptions) use ($app) {
+        $container['orm.cache.factory.memcache'] = $container->protect(function ($cacheOptions) use ($container) {
             if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
                 throw new \RuntimeException('Host and port options need to be specified for memcache cache');
             }
 
-            $memcache = $app['orm.cache.factory.backing_memcache']();
+            /** @var \Memcache $memcache */
+            $memcache = $container['orm.cache.factory.backing_memcache']();
             $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
 
             $cache = new MemcacheCache;
@@ -236,16 +239,17 @@ class DoctrineOrmServiceProvider
             return $cache;
         });
 
-        $app['orm.cache.factory.backing_memcached'] = $app->protect(function() {
+        $container['orm.cache.factory.backing_memcached'] = $container->protect(function () {
             return new \Memcached;
         });
 
-        $app['orm.cache.factory.memcached'] = $app->protect(function($cacheOptions) use ($app) {
+        $container['orm.cache.factory.memcached'] = $container->protect(function ($cacheOptions) use ($container) {
             if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
                 throw new \RuntimeException('Host and port options need to be specified for memcached cache');
             }
 
-            $memcached = $app['orm.cache.factory.backing_memcached']();
+            /** @var \Memcached $memcached */
+            $memcached = $container['orm.cache.factory.backing_memcached']();
             $memcached->addServer($cacheOptions['host'], $cacheOptions['port']);
 
             $cache = new MemcachedCache;
@@ -254,16 +258,17 @@ class DoctrineOrmServiceProvider
             return $cache;
         });
 
-        $app['orm.cache.factory.backing_redis'] = $app->protect(function() {
+        $container['orm.cache.factory.backing_redis'] = $container->protect(function () {
             return new \Redis;
         });
 
-        $app['orm.cache.factory.redis'] = $app->protect(function($cacheOptions) use ($app) {
+        $container['orm.cache.factory.redis'] = $container->protect(function ($cacheOptions) use ($container) {
             if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
                 throw new \RuntimeException('Host and port options need to be specified for redis cache');
             }
 
-            $redis = $app['orm.cache.factory.backing_redis']();
+            /** @var \Redis $redis */
+            $redis = $container['orm.cache.factory.backing_redis']();
             $redis->connect($cacheOptions['host'], $cacheOptions['port']);
 
             $cache = new RedisCache;
@@ -272,80 +277,82 @@ class DoctrineOrmServiceProvider
             return $cache;
         });
 
-        $app['orm.cache.factory.array'] = $app->protect(function() {
+        $container['orm.cache.factory.array'] = $container->protect(function () {
             return new ArrayCache;
         });
 
-        $app['orm.cache.factory.apc'] = $app->protect(function() {
+        $container['orm.cache.factory.apc'] = $container->protect(function () {
             return new ApcCache;
         });
 
-        $app['orm.cache.factory.xcache'] = $app->protect(function() {
+        $container['orm.cache.factory.xcache'] = $container->protect(function () {
             return new XcacheCache;
         });
 
-        $app['orm.cache.factory.filesystem'] = $app->protect(function($cacheOptions) {
+        $container['orm.cache.factory.filesystem'] = $container->protect(function ($cacheOptions) {
             if (empty($cacheOptions['path'])) {
                 throw new \RuntimeException('FilesystemCache path not defined');
             }
+
             return new FilesystemCache($cacheOptions['path']);
         });
 
-        $app['orm.cache.factory'] = $app->protect(function($driver, $cacheOptions) use ($app) {
+        $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
             switch ($driver) {
                 case 'array':
-                    return $app['orm.cache.factory.array']();
+                    return $container['orm.cache.factory.array']();
                 case 'apc':
-                    return $app['orm.cache.factory.apc']();
+                    return $container['orm.cache.factory.apc']();
                 case 'xcache':
-                    return $app['orm.cache.factory.xcache']();
+                    return $container['orm.cache.factory.xcache']();
                 case 'memcache':
-                    return $app['orm.cache.factory.memcache']($cacheOptions);
+                    return $container['orm.cache.factory.memcache']($cacheOptions);
                 case 'memcached':
-                    return $app['orm.cache.factory.memcached']($cacheOptions);
+                    return $container['orm.cache.factory.memcached']($cacheOptions);
                 case 'filesystem':
-                    return $app['orm.cache.factory.filesystem']($cacheOptions);
+                    return $container['orm.cache.factory.filesystem']($cacheOptions);
                 case 'redis':
-                    return $app['orm.cache.factory.redis']($cacheOptions);
+                    return $container['orm.cache.factory.redis']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
         });
 
-        $app['orm.mapping_driver_chain.locator'] = $app->protect(function($name = null) use ($app) {
-            $app['orm.ems.options.initializer']();
+        $container['orm.mapping_driver_chain.locator'] = $container->protect(function ($name = null) use ($container) {
+            $container['orm.ems.options.initializer']();
 
             if (null === $name) {
-                $name = $app['orm.ems.default'];
+                $name = $container['orm.ems.default'];
             }
 
             $cacheInstanceKey = 'orm.mapping_driver_chain.instances.'.$name;
-            if (isset($app[$cacheInstanceKey])) {
-                return $app[$cacheInstanceKey];
+            if (isset($container[$cacheInstanceKey])) {
+                return $container[$cacheInstanceKey];
             }
 
-            return $app[$cacheInstanceKey] = $app['orm.mapping_driver_chain.factory']($name);
+            return $container[$cacheInstanceKey] = $container['orm.mapping_driver_chain.factory']($name);
         });
 
-        $app['orm.mapping_driver_chain.factory'] = $app->protect(function($name) use ($app) {
+        $container['orm.mapping_driver_chain.factory'] = $container->protect(function ($name) use ($container) {
             return new MappingDriverChain;
         });
 
-        $app['orm.add_mapping_driver'] = $app->protect(function(MappingDriver $mappingDriver, $namespace, $name = null) use ($app) {
-            $app['orm.ems.options.initializer']();
+        $container['orm.add_mapping_driver'] = $container->protect(function (MappingDriver $mappingDriver, $namespace, $name = null) use ($container) {
+            $container['orm.ems.options.initializer']();
 
             if (null === $name) {
-                $name = $app['orm.ems.default'];
+                $name = $container['orm.ems.default'];
             }
 
-            $driverChain = $app['orm.mapping_driver_chain.locator']($name);
+            /** @var MappingDriverChain $driverChain */
+            $driverChain = $container['orm.mapping_driver_chain.locator']($name);
             $driverChain->addDriver($mappingDriver, $namespace);
         });
 
-        $app['orm.generate_psr0_mapping'] = $app->protect(function($resourceMapping) use ($app) {
+        $container['orm.generate_psr0_mapping'] = $container->protect(function ($resourceMapping) use ($container) {
             $mapping = array();
             foreach ($resourceMapping as $resourceNamespace => $entityNamespace) {
-                $directory = $app['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
+                $directory = $container['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
                 if (!$directory) {
                     throw new \InvalidArgumentException("Resources for mapping '$entityNamespace' could not be located; Looked for mapping resources at '$resourceNamespace'");
                 }
@@ -355,27 +362,27 @@ class DoctrineOrmServiceProvider
             return $mapping;
         });
 
-        $app['orm.em'] = $app->share(function($app) {
-            $ems = $app['orm.ems'];
+        $container['orm.em'] = function ($container) {
+            $ems = $container['orm.ems'];
 
-            return $ems[$app['orm.ems.default']];
-        });
+            return $ems[$container['orm.ems.default']];
+        };
 
-        $app['orm.em.config'] = $app->share(function($app) {
-            $configs = $app['orm.ems.config'];
+        $container['orm.em.config'] = function ($container) {
+            $configs = $container['orm.ems.config'];
 
-            return $configs[$app['orm.ems.default']];
-        });
+            return $configs[$container['orm.ems.default']];
+        };
     }
 
     /**
      * Get default ORM configuration settings.
      *
-     * @param Application $app Application
+     * @param Container $container
      *
      * @return array
      */
-    protected function getOrmDefaults(\Pimple $app)
+    protected function getOrmDefaults(Container $container)
     {
         return array(
             'orm.proxies_dir' => __DIR__.'/../../../../../../../../cache/doctrine/proxies',
