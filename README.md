@@ -19,7 +19,7 @@ Requirements
 ------------
 
  * PHP 5.3+
- * Pimple ~2.0
+ * Pimple ~2.1
  * Doctrine ~2.3
 
 Currently requires both **dbs** and **dbs.event_manager** services in
