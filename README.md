@@ -8,7 +8,7 @@ Features
 --------
 
  * Leverages the core [Doctrine Service Provider][1] for either
-   Silex or Cilex.
+   Silex.
  * Default Entity Manager can be bound to any database connection
  * Multiple Entity Managers can be defined
  * Mechanism for allowing Service Providers to register their own
