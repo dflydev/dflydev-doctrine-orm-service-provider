@@ -24,8 +24,7 @@ Requirements
 
 Currently requires both **dbs** and **dbs.event_manager** services in
 order to work. These can be provided by a Doctrine Service Provider
-like the [Silex][1]. If you can or
-want to fake it, go for it. :)
+like the [Silex][1] one. If you can or want to fake it, go for it. :)
 
 
 Optional Dependencies
