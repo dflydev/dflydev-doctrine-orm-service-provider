@@ -42,7 +42,7 @@ class DoctrineOrmServiceProvider
 {
     public function register(\Pimple $app)
     {
-        foreach ($this->getOrmDefaults($app) as $key => $value) {
+        foreach ($this->getOrmDefaults() as $key => $value) {
             if (!isset($app[$key])) {
                 $app[$key] = $value;
             }
@@ -410,7 +410,7 @@ class DoctrineOrmServiceProvider
      *
      * @return array
      */
-    protected function getOrmDefaults(\Pimple $app)
+    protected function getOrmDefaults()
     {
         return array(
             'orm.proxies_dir' => __DIR__.'/../../../../../../../../cache/doctrine/proxies',
