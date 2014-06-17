@@ -9,7 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Dflydev\Pimple\Provider\DoctrineOrm;
+namespace Dflydev\Tests\Provider\DoctrineOrm;
+
+use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Pimple\Container;
 
 /**
  * DoctrineOrmServiceProvider Test.
@@ -20,7 +23,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected function createMockDefaultAppAndDeps()
     {
-        $app = new \Pimple;
+        $container = new Container();
 
         $eventManager = $this->getMock('Doctrine\Common\EventManager');
         $connection = $this
@@ -33,22 +36,25 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ->method('getEventManager')
             ->will($this->returnValue($eventManager));
 
-        $app['dbs'] = new \Pimple(array(
+        $container['dbs'] = new Container(array(
             'default' => $connection,
         ));
 
-        $app['dbs.event_manager'] = new \Pimple(array(
+        $container['dbs.event_manager'] = new Container(array(
             'default' => $eventManager,
         ));
 
-        return array($app, $connection, $eventManager);;
+        return array($container, $connection, $eventManager);;
     }
 
+    /**
+     * @return Container
+     */
     protected function createMockDefaultApp()
     {
-        list ($app, $connection, $eventManager) = $this->createMockDefaultAppAndDeps();
+        list ($container, $connection, $eventManager) = $this->createMockDefaultAppAndDeps();
 
-        return $app;
+        return $container;
     }
 
     /**
@@ -56,17 +62,16 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testRegisterDefaultImplementations()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider());
 
-        $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getQueryCacheImpl());
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getResultCacheImpl());
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getMetadataCacheImpl());
-        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getHydrationCacheImpl());
-        $this->assertInstanceOf('Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain', $app['orm.em.config']->getMetadataDriverImpl());
+        $this->assertEquals($container['orm.em'], $container['orm.ems']['default']);
+        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container['orm.em.config']->getQueryCacheImpl());
+        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container['orm.em.config']->getResultCacheImpl());
+        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container['orm.em.config']->getMetadataCacheImpl());
+        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $container['orm.em.config']->getHydrationCacheImpl());
+        $this->assertInstanceOf('Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain', $container['orm.em.config']->getMetadataDriverImpl());
     }
 
     /**
@@ -74,7 +79,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testRegisterDefinedImplementations()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
         $queryCache = $this->getMock('Doctrine\Common\Cache\ArrayCache');
         $resultCache = $this->getMock('Doctrine\Common\Cache\ArrayCache');
@@ -82,20 +87,19 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $mappingDriverChain = $this->getMock('Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain');
 
-        $app['orm.cache.instances.default.query'] = $queryCache;
-        $app['orm.cache.instances.default.result'] = $resultCache;
-        $app['orm.cache.instances.default.metadata'] = $metadataCache;
+        $container['orm.cache.instances.default.query'] = $queryCache;
+        $container['orm.cache.instances.default.result'] = $resultCache;
+        $container['orm.cache.instances.default.metadata'] = $metadataCache;
 
-        $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
+        $container['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
-        $this->assertEquals($queryCache, $app['orm.em.config']->getQueryCacheImpl());
-        $this->assertEquals($resultCache, $app['orm.em.config']->getResultCacheImpl());
-        $this->assertEquals($metadataCache, $app['orm.em.config']->getMetadataCacheImpl());
-        $this->assertEquals($mappingDriverChain, $app['orm.em.config']->getMetadataDriverImpl());
+        $this->assertEquals($container['orm.em'], $container['orm.ems']['default']);
+        $this->assertEquals($queryCache, $container['orm.em.config']->getQueryCacheImpl());
+        $this->assertEquals($resultCache, $container['orm.em.config']->getResultCacheImpl());
+        $this->assertEquals($metadataCache, $container['orm.em.config']->getMetadataCacheImpl());
+        $this->assertEquals($mappingDriverChain, $container['orm.em.config']->getMetadataDriverImpl());
     }
 
     /**
@@ -103,14 +107,13 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testProxyConfigurationDefaults()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $this->assertContains('/../../../../../../../cache/doctrine/proxies', $app['orm.em.config']->getProxyDir());
-        $this->assertEquals('DoctrineProxy', $app['orm.em.config']->getProxyNamespace());
-        $this->assertTrue($app['orm.em.config']->getAutoGenerateProxyClasses());
+        $this->assertContains('/../../../../../../../cache/doctrine/proxies', $container['orm.em.config']->getProxyDir());
+        $this->assertEquals('DoctrineProxy', $container['orm.em.config']->getProxyNamespace());
+        $this->assertTrue($container['orm.em.config']->getAutoGenerateProxyClasses());
     }
 
     /**
@@ -118,10 +121,9 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testProxyConfigurationDefined()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
         $entityRepositoryClassName = get_class($this->getMock('Doctrine\Common\Persistence\ObjectRepository'));
         $metadataFactoryName = get_class($this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadataFactory'));
@@ -129,23 +131,23 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $entityListenerResolver = $this->getMock('Doctrine\ORM\Mapping\EntityListenerResolver');
         $repositoryFactory = $this->getMock('Doctrine\ORM\Repository\RepositoryFactory');
 
-        $app['orm.proxies_dir'] = '/path/to/proxies';
-        $app['orm.proxies_namespace'] = 'TestDoctrineOrmProxiesNamespace';
-        $app['orm.auto_generate_proxies'] = false;
-        $app['orm.class_metadata_factory_name'] = $metadataFactoryName;
-        $app['orm.default_repository_class'] = $entityRepositoryClassName;
-        $app['orm.entity_listener_resolver'] = $entityListenerResolver;
-        $app['orm.repository_factory'] = $repositoryFactory;
-        $app['orm.custom.hydration_modes'] = array('mymode' => 'Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator');
+        $container['orm.proxies_dir'] = '/path/to/proxies';
+        $container['orm.proxies_namespace'] = 'TestDoctrineOrmProxiesNamespace';
+        $container['orm.auto_generate_proxies'] = false;
+        $container['orm.class_metadata_factory_name'] = $metadataFactoryName;
+        $container['orm.default_repository_class'] = $entityRepositoryClassName;
+        $container['orm.entity_listener_resolver'] = $entityListenerResolver;
+        $container['orm.repository_factory'] = $repositoryFactory;
+        $container['orm.custom.hydration_modes'] = array('mymode' => 'Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator');
 
-        $this->assertEquals('/path/to/proxies', $app['orm.em.config']->getProxyDir());
-        $this->assertEquals('TestDoctrineOrmProxiesNamespace', $app['orm.em.config']->getProxyNamespace());
-        $this->assertFalse($app['orm.em.config']->getAutoGenerateProxyClasses());
-        $this->assertEquals($metadataFactoryName, $app['orm.em.config']->getClassMetadataFactoryName());
-        $this->assertEquals($entityRepositoryClassName, $app['orm.em.config']->getDefaultRepositoryClassName());
-        $this->assertEquals($entityListenerResolver, $app['orm.em.config']->getEntityListenerResolver());
-        $this->assertEquals($repositoryFactory, $app['orm.em.config']->getRepositoryFactory());
-        $this->assertEquals('Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator', $app['orm.em.config']->getCustomHydrationMode('mymode'));
+        $this->assertEquals('/path/to/proxies', $container['orm.em.config']->getProxyDir());
+        $this->assertEquals('TestDoctrineOrmProxiesNamespace', $container['orm.em.config']->getProxyNamespace());
+        $this->assertFalse($container['orm.em.config']->getAutoGenerateProxyClasses());
+        $this->assertEquals($metadataFactoryName, $container['orm.em.config']->getClassMetadataFactoryName());
+        $this->assertEquals($entityRepositoryClassName, $container['orm.em.config']->getDefaultRepositoryClassName());
+        $this->assertEquals($entityListenerResolver, $container['orm.em.config']->getEntityListenerResolver());
+        $this->assertEquals($repositoryFactory, $container['orm.em.config']->getRepositoryFactory());
+        $this->assertEquals('Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator', $container['orm.em.config']->getCustomHydrationMode('mymode'));
     }
 
     /**
@@ -153,14 +155,13 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testMappingDriverChainLocator()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $default = $app['orm.mapping_driver_chain.locator']();
-        $this->assertEquals($default, $app['orm.mapping_driver_chain.locator']('default'));
-        $this->assertEquals($default, $app['orm.em.config']->getMetadataDriverImpl());
+        $default = $container['orm.mapping_driver_chain.locator']();
+        $this->assertEquals($default, $container['orm.mapping_driver_chain.locator']('default'));
+        $this->assertEquals($default, $container['orm.em.config']->getMetadataDriverImpl());
     }
 
     /**
@@ -168,7 +169,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddMappingDriverDefault()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
         $mappingDriver = $this->getMock('Doctrine\Common\Persistence\Mapping\Driver\MappingDriver');
 
@@ -178,12 +179,11 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ->method('addDriver')
             ->with($mappingDriver, 'Test\Namespace');
 
-        $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
+        $container['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
+        $container['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
     }
 
     /**
@@ -191,7 +191,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddMappingDriverNamedEntityManager()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
         $mappingDriver = $this->getMock('Doctrine\Common\Persistence\Mapping\Driver\MappingDriver');
 
@@ -201,12 +201,11 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ->method('addDriver')
             ->with($mappingDriver, 'Test\Namespace');
 
-        $app['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
+        $container['orm.mapping_driver_chain.instances.default'] = $mappingDriverChain;
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
+        $container['orm.add_mapping_driver']($mappingDriver, 'Test\Namespace');
     }
 
     /**
@@ -214,17 +213,16 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidCacheTypeNamed()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.em.options'] = array(
+        $container['orm.em.options'] = array(
             'query_cache' => 'INVALID',
         );
 
         try {
-            $app['orm.em'];
+            $container['orm.em'];
 
             $this->fail('Expected invalid query cache driver exception');
         } catch (\RuntimeException $e) {
@@ -237,19 +235,18 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidCacheTypeDriverAsOption()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.em.options'] = array(
+        $container['orm.em.options'] = array(
             'query_cache' => array(
                 'driver' => 'INVALID',
             ),
         );
 
         try {
-            $app['orm.em'];
+            $container['orm.em'];
 
             $this->fail('Expected invalid query cache driver exception');
         } catch (\RuntimeException $e) {
@@ -262,34 +259,32 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testNameFromParamKey()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $app['my.baz'] = 'baz';
+        $container['my.baz'] = 'baz';
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.ems.default'] = 'foo';
+        $container['orm.ems.default'] = 'foo';
 
-        $this->assertEquals('foo', $app['orm.ems.default']);
-        $this->assertEquals('foo', $app['orm.em_name_from_param_key']('my.bar'));
-        $this->assertEquals('baz', $app['orm.em_name_from_param_key']('my.baz'));
+        $this->assertEquals('foo', $container['orm.ems.default']);
+        $this->assertEquals('foo', $container['orm.em_name_from_param_key']('my.bar'));
+        $this->assertEquals('baz', $container['orm.em_name_from_param_key']('my.baz'));
     }
 
     /**
      * Test specifying an invalid mapping configuration (not an array of arrays)
      *
-     * @expectedException        InvalidArgumentException
+     * @expectedException        \InvalidArgumentException
      * @expectedExceptionMessage The 'orm.em.options' option 'mappings' should be an array of arrays.
      */
     public function testInvalidMappingAsOption()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
-        $app['orm.em.options'] = array(
+        $container['orm.em.options'] = array(
             'mappings' => array(
                 'type' => 'annotation',
                 'namespace' => 'Foo\Entities',
@@ -297,7 +292,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ),
         );
 
-        $app['orm.ems.config'];
+        $container['orm.ems.config'];
     }
 
     /**
@@ -305,15 +300,14 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testMappingAlias()
     {
-        $app = $this->createMockDefaultApp();
+        $container = $this->createMockDefaultApp();
 
-        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-        $doctrineOrmServiceProvider->register($app);
+        $container->register(new DoctrineOrmServiceProvider);
 
         $alias = 'Foo';
         $namespace = 'Foo\Entities';
 
-        $app['orm.em.options'] = array(
+        $container['orm.em.options'] = array(
             'mappings' => array(
                 array(
                     'type' => 'annotation',
@@ -324,7 +318,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
             ),
         );
 
-        $this->assertEquals($namespace, $app['orm.em.config']->getEntityNameSpace($alias));
+        $this->assertEquals($namespace, $container['orm.em.config']->getEntityNameSpace($alias));
     }
 
     public function testStrategy()

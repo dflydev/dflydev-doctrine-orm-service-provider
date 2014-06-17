@@ -8,7 +8,7 @@ Features
 --------
 
  * Leverages the core [Doctrine Service Provider][1] for either
-   Silex or Cilex.
+   Silex.
  * Default Entity Manager can be bound to any database connection
  * Multiple Entity Managers can be defined
  * Mechanism for allowing Service Providers to register their own
@@ -19,12 +19,12 @@ Requirements
 ------------
 
  * PHP 5.3+
+ * Pimple ~2.1
  * Doctrine ~2.3
 
 Currently requires both **dbs** and **dbs.event_manager** services in
 order to work. These can be provided by a Doctrine Service Provider
-like the [Silex][1] or [Cilex][8] service providers. If you can or
-want to fake it, go for it. :)
+like the [Silex][1] one. If you can or want to fake it, go for it. :)
 
 
 Optional Dependencies
@@ -66,9 +66,10 @@ $em = $app['orm.em'];
 ```php
 <?php
 
-use Dflydev\Pimple\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Pimple\Container;
 
-$container = new \Pimple;
+$container = new Container;
 
 $container["db.options"] = array(
     "driver" => "pdo_sqlite",
@@ -78,38 +79,37 @@ $container["db.options"] = array(
 // ensure that $container['dbs'] and $container['dbs.event_manager']
 // are available, most likely by way of a core service provider.
 
-$container["orm.proxies_dir"] = "/path/to/proxies";
-$container["orm.em.options"] = array(
-    "mappings" => array(
-        // Using actual filesystem paths
-        array(
-            "type" => "annotation",
-            "namespace" => "Foo\Entities",
-            "path" => __DIR__."/src/Foo/Entities",
-        ),
-        array(
-            "type" => "xml",
-            "namespace" => "Bat\Entities",
-            "path" => __DIR__."/src/Bat/Resources/mappings",
-        ),
-        // Using PSR-0 namespaceish embedded resources
-        // (requires registering a PSR-0 Resource Locator
-        // Service Provider)
-        array(
-            "type" => "annotation",
-            "namespace" => "Baz\Entities",
-            "resources_namespace" => "Baz\Entities",
-        ),
-        array(
-            "type" => "xml",
-            "namespace" => "Bar\Entities",
-            "resources_namespace" => "Bar\Resources\mappings",
+$container->register(new DoctrineOrmServiceProvider, array(
+    "orm.proxies_dir" => "/path/to/proxies",
+    "orm.em.options" => array(
+        "mappings" => array(
+            // Using actual filesystem paths
+            array(
+                "type" => "annotation",
+                "namespace" => "Foo\Entities",
+                "path" => __DIR__."/src/Foo/Entities",
+            ),
+            array(
+                "type" => "xml",
+                "namespace" => "Bat\Entities",
+                "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            // Using PSR-0 namespaceish embedded resources
+            // (requires registering a PSR-0 Resource Locator
+            // Service Provider)
+            array(
+                "type" => "annotation",
+                "namespace" => "Baz\Entities",
+                "resources_namespace" => "Baz\Entities",
+            ),
+            array(
+                "type" => "xml",
+                "namespace" => "Bar\Entities",
+                "resources_namespace" => "Bar\Resources\mappings",
+            ),
         ),
     ),
-);
-
-$doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
-$doctrineormServiceProvider->register($container);
+));
 ```
 
 ### Silex
@@ -117,7 +117,7 @@ $doctrineormServiceProvider->register($container);
 ```php
 <?php
 
-use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Silex\Application;
 use Silex\Provider\DoctrineServiceProvider;
 
@@ -162,27 +162,6 @@ $app->register(new DoctrineOrmServiceProvider, array(
     ),
 ));
 ```
-
-### Cilex
-
-```php
-<?php
-
-use Dflydev\Cilex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
-use Cilex\Application;
-use Cilex\Provider\DoctrineServiceProvider;
-
-$app = new Application('My Application');
-
-$app->register(new DoctrineServiceProvider, array(
-    /** same as the Silex example **/
-));
-
-$app->register(new DoctrineOrmServiceProvider, array(
-    /** same as the Silex example **/
-));
-```
-
 
 Configuration
 -------------
@@ -398,9 +377,6 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
 [6]: http://github.com/dflydev/dflydev-psr0-resource-locator-service-provider
 [7]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
-[8]: https://github.com/Cilex/Cilex/blob/master/src/Cilex/Provider/DoctrineServiceProvider.php
 
 [#dflydev]: irc://irc.freenode.net/#dflydev
 [#silex-php]: irc://irc.freenode.net/#silex-php
-
-
