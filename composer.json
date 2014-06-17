@@ -24,12 +24,9 @@
     "require-dev": {
         "silex/silex": "dev-master@dev"
     },
-    "suggest": {
-        "dflydev/psr0-resource-locator-service-provider": "1.0.*@dev"
-    },
     "autoload": {
-        "psr-0": {
-            "Dflydev\\Provider\\DoctrineOrm": "src"
+        "psr-4": {
+            "Dflydev\\Provider\\DoctrineOrm\\": "src/Dflydev/Provider/DoctrineOrm"
         }
     },
     "extra": {

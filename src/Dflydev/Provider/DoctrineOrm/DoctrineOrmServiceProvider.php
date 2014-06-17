@@ -150,10 +150,6 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                         );
                     }
 
-                    if (!empty($entity['resources_namespace'])) {
-                        $entity['path'] = $container['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
-                    }
-
                     if (isset($entity['alias'])) {
                         $config->addEntityNamespace($entity['alias'], $entity['namespace']);
                     }
@@ -367,19 +363,6 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             /** @var MappingDriverChain $driverChain */
             $driverChain = $container['orm.mapping_driver_chain.locator']($name);
             $driverChain->addDriver($mappingDriver, $namespace);
-        });
-
-        $container['orm.generate_psr0_mapping'] = $container->protect(function ($resourceMapping) use ($container) {
-            $mapping = array();
-            foreach ($resourceMapping as $resourceNamespace => $entityNamespace) {
-                $directory = $container['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
-                if (!$directory) {
-                    throw new \InvalidArgumentException("Resources for mapping '$entityNamespace' could not be located; Looked for mapping resources at '$resourceNamespace'");
-                }
-                $mapping[$directory] = $entityNamespace;
-            }
-
-            return $mapping;
         });
 
         $container['orm.strategy.naming'] = function($container) {

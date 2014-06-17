@@ -1,5 +1,6 @@
 ## 2.0.x-dev
 
+ * @simensen: Purge PSR-0 Resource Locator
  * @dominikzogg: Support for Pimple 2 (#26)
 
 ## v1.0.5 (2014-06-17)

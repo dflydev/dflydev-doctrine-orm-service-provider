@@ -26,21 +26,11 @@ Currently requires both **dbs** and **dbs.event_manager** services in
 order to work. These can be provided by a Doctrine Service Provider
 like the [Silex][1] one. If you can or want to fake it, go for it. :)
 
-
-Optional Dependencies
----------------------
-
-### PSR-0 Resource Locator Service Provider
-
-An implementation of [dflydev/psr0-resource-locator-service-provider][6]
-is required if using namespaceish resource mapping. See documentation
-for **orm.generate_psr0_mapping** for more information.
-
  
 Installation
 ------------
  
-Through [Composer](http://getcomposer.org) as [dflydev/doctrine-orm-service-provider][7].
+Through [Composer](http://getcomposer.org) as [dflydev/doctrine-orm-service-provider][6].
 
 
 Usage
@@ -93,19 +83,6 @@ $container->register(new DoctrineOrmServiceProvider, array(
                 "type" => "xml",
                 "namespace" => "Bat\Entities",
                 "path" => __DIR__."/src/Bat/Resources/mappings",
-            ),
-            // Using PSR-0 namespaceish embedded resources
-            // (requires registering a PSR-0 Resource Locator
-            // Service Provider)
-            array(
-                "type" => "annotation",
-                "namespace" => "Baz\Entities",
-                "resources_namespace" => "Baz\Entities",
-            ),
-            array(
-                "type" => "xml",
-                "namespace" => "Bar\Entities",
-                "resources_namespace" => "Bar\Resources\mappings",
             ),
         ),
     ),
@@ -287,29 +264,6 @@ Configuration
 
    This code should be able to be used inside of a 3rd party service provider
    safely, whether the user has defined `3rdparty.provider.em` or not.
- * **orm.generate_psr0_mapping**:
-   Leverages [dflydev/psr0-resource-locator-service-provider][6] to process
-   a map of namespaceish resource directories to their mapped entities.
-
-   Example usage:
-   ```php
-   <?php
-   $app['orm.ems.config'] = $app->share($app->extend('orm.ems.config', function ($config, $app) {
-       $mapping = $app['orm.generate_psr0_mapping'](array(
-           'Foo\Resources\mappings' => 'Foo\Entities',
-           'Bar\Resources\mappings' => 'Bar\Entities',
-       ));
-
-       $chain = $app['orm.mapping_driver_chain.locator']();
-
-       foreach ($mapping as $directory => $namespace) {
-           $driver = new XmlDriver($directory);
-           $chain->addDriver($driver, $namespace);
-       }
-
-       return $config;
-   }));
-   ```
  * **orm.strategy**:
    * **naming**: Naming strategy, instance `Doctrine\ORM\Mapping\NamingStrategy`.
    * **quote**: Quote strategy, instance `Doctrine\ORM\Mapping\QuoteStrategy`.
@@ -356,7 +310,7 @@ Community
 ---------
 
 If you have questions or want to help out, join us in the
-[#dflydev][#dflydev] or [#silex-php][#silex-php] channels on
+[#dflydev][dflydev] or [#silex-php][silex-php] channels on
 irc.freenode.net.
 
 
@@ -375,8 +329,7 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [3]: https://github.com/docteurklein/SilexServiceProviders
 [4]: https://github.com/doctrine/DoctrineBundle
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
-[6]: http://github.com/dflydev/dflydev-psr0-resource-locator-service-provider
-[7]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
+[6]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
 
-[#dflydev]: irc://irc.freenode.net/#dflydev
-[#silex-php]: irc://irc.freenode.net/#silex-php
+[dflydev]: irc://irc.freenode.net/#dflydev
+[silex-php]: irc://irc.freenode.net/#silex-php
