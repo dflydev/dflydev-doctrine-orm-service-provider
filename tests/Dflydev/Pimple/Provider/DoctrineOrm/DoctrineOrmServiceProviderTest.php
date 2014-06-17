@@ -65,6 +65,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getQueryCacheImpl());
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getResultCacheImpl());
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getMetadataCacheImpl());
+        $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getHydrationCacheImpl());
         $this->assertInstanceOf('Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain', $app['orm.em.config']->getMetadataDriverImpl());
     }
 
@@ -122,13 +123,29 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
         $doctrineOrmServiceProvider->register($app);
 
+        $entityRepositoryClassName = get_class($this->getMock('Doctrine\Common\Persistence\ObjectRepository'));
+        $metadataFactoryName = get_class($this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadataFactory'));
+
+        $entityListenerResolver = $this->getMock('Doctrine\ORM\Mapping\EntityListenerResolver');
+        $repositoryFactory = $this->getMock('Doctrine\ORM\Repository\RepositoryFactory');
+
         $app['orm.proxies_dir'] = '/path/to/proxies';
         $app['orm.proxies_namespace'] = 'TestDoctrineOrmProxiesNamespace';
         $app['orm.auto_generate_proxies'] = false;
+        $app['orm.class_metadata_factory_name'] = $metadataFactoryName;
+        $app['orm.default_repository_class'] = $entityRepositoryClassName;
+        $app['orm.entity_listener_resolver'] = $entityListenerResolver;
+        $app['orm.repository_factory'] = $repositoryFactory;
+        $app['orm.custom.hydration_modes'] = array('mymode' => 'Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator');
 
         $this->assertEquals('/path/to/proxies', $app['orm.em.config']->getProxyDir());
         $this->assertEquals('TestDoctrineOrmProxiesNamespace', $app['orm.em.config']->getProxyNamespace());
         $this->assertFalse($app['orm.em.config']->getAutoGenerateProxyClasses());
+        $this->assertEquals($metadataFactoryName, $app['orm.em.config']->getClassMetadataFactoryName());
+        $this->assertEquals($entityRepositoryClassName, $app['orm.em.config']->getDefaultRepositoryClassName());
+        $this->assertEquals($entityListenerResolver, $app['orm.em.config']->getEntityListenerResolver());
+        $this->assertEquals($repositoryFactory, $app['orm.em.config']->getRepositoryFactory());
+        $this->assertEquals('Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator', $app['orm.em.config']->getCustomHydrationMode('mymode'));
     }
 
     /**
@@ -308,5 +325,42 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals($namespace, $app['orm.em.config']->getEntityNameSpace($alias));
+    }
+
+    public function testStrategy()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $namingStrategy = $this->getMock('Doctrine\ORM\Mapping\DefaultNamingStrategy');
+        $quoteStrategy = $this->getMock('Doctrine\ORM\Mapping\DefaultQuoteStrategy');
+
+        $app['orm.strategy.naming'] = $namingStrategy;
+        $app['orm.strategy.quote'] = $quoteStrategy;
+
+        $this->assertEquals($namingStrategy, $app['orm.em.config']->getNamingStrategy());
+        $this->assertEquals($quoteStrategy, $app['orm.em.config']->getQuoteStrategy());
+    }
+
+    public function testCustomFunctions()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        $numericFunction = $this->getMock('Doctrine\ORM\Query\AST\Functions\FunctionNode', array(), array('mynum'));
+        $stringFunction = $this->getMock('Doctrine\ORM\Query\AST\Functions\FunctionNode', array(), array('mynum'));
+        $datetimeFunction = $this->getMock('Doctrine\ORM\Query\AST\Functions\FunctionNode', array(), array('mynum'));
+
+        $app['orm.custom.functions.string'] = array('mystring' => $numericFunction);
+        $app['orm.custom.functions.numeric'] = array('mynumeric' => $stringFunction);
+        $app['orm.custom.functions.datetime'] = array('mydatetime' => $datetimeFunction);
+
+        $this->assertEquals($numericFunction, $app['orm.em.config']->getCustomStringFunction('mystring'));
+        $this->assertEquals($numericFunction, $app['orm.em.config']->getCustomNumericFunction('mynumeric'));
+        $this->assertEquals($numericFunction, $app['orm.em.config']->getCustomDatetimeFunction('mydatetime'));
     }
 }

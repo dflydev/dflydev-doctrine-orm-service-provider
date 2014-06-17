@@ -24,10 +24,14 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
+use Doctrine\ORM\Mapping\DefaultNamingStrategy;
+use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\Driver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 
 /**
  * Doctrine ORM Pimple Service Provider.
@@ -121,6 +125,20 @@ class DoctrineOrmServiceProvider
                 $config->setProxyNamespace($app['orm.proxies_namespace']);
                 $config->setAutoGenerateProxyClasses($app['orm.auto_generate_proxies']);
 
+                $config->setCustomStringFunctions($app['orm.custom.functions.string']); 
+                $config->setCustomNumericFunctions($app['orm.custom.functions.numeric']); 
+                $config->setCustomDatetimeFunctions($app['orm.custom.functions.datetime']); 
+                $config->setCustomHydrationModes($app['orm.custom.hydration_modes']);
+
+                $config->setClassMetadataFactoryName($app['orm.class_metadata_factory_name']);
+                $config->setDefaultRepositoryClassName($app['orm.default_repository_class']);
+
+                $config->setEntityListenerResolver($app['orm.entity_listener_resolver']);
+                $config->setRepositoryFactory($app['orm.repository_factory']);
+
+                $config->setNamingStrategy($app['orm.strategy.naming']);
+                $config->setQuoteStrategy($app['orm.strategy.quote']);
+
                 $chain = $app['orm.mapping_driver_chain.locator']($name);
                 foreach ((array) $options['mappings'] as $entity) {
                     if (!is_array($entity)) {
@@ -183,6 +201,7 @@ class DoctrineOrmServiceProvider
             $config->setMetadataCacheImpl($app['orm.cache.locator']($name, 'metadata', $options));
             $config->setQueryCacheImpl($app['orm.cache.locator']($name, 'query', $options));
             $config->setResultCacheImpl($app['orm.cache.locator']($name, 'result', $options));
+            $config->setHydrationCacheImpl($app['orm.cache.locator']($name, 'hydration', $options));
         });
 
         $app['orm.cache.locator'] = $app->protect(function($name, $cacheName, $options) use ($app) {
@@ -355,6 +374,22 @@ class DoctrineOrmServiceProvider
             return $mapping;
         });
 
+        $app['orm.strategy.naming'] = $app->share(function($app) {
+            return new DefaultNamingStrategy;
+        });
+
+        $app['orm.strategy.quote'] = $app->share(function($app) {
+            return new DefaultQuoteStrategy;
+        });
+
+        $app['orm.entity_listener_resolver'] = $app->share(function($app) {
+            return new DefaultEntityListenerResolver;
+        });
+
+        $app['orm.repository_factory'] = $app->share(function($app) {
+            return new DefaultRepositoryFactory;
+        });
+
         $app['orm.em'] = $app->share(function($app) {
             $ems = $app['orm.ems'];
 
@@ -382,6 +417,12 @@ class DoctrineOrmServiceProvider
             'orm.proxies_namespace' => 'DoctrineProxy',
             'orm.auto_generate_proxies' => true,
             'orm.default_cache' => 'array',
+            'orm.custom.functions.string' => array(),
+            'orm.custom.functions.numeric' => array(),
+            'orm.custom.functions.datetime' => array(),
+            'orm.custom.hydration_modes' => array(),
+            'orm.class_metadata_factory_name' => 'Doctrine\ORM\Mapping\ClassMetadataFactory',
+            'orm.default_repository_class' => 'Doctrine\ORM\EntityRepository',
         );
     }
 }

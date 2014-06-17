@@ -230,6 +230,8 @@ Configuration
      String or array describing metadata cache implementation.
    * **result_cache** (Default: setting specified by orm.default_cache):
      String or array describing result cache implementation.
+   * **hydration_cache** (Default: setting specified by orm.default_cache):
+     String or array describing hydration cache implementation.
    * **types**
      An array of custom types in the format of 'typeName' => 'Namespace\To\Type\Class'
  * **orm.ems.options**:
@@ -268,6 +270,13 @@ Configuration
    String defining namespace in which Doctrine generated proxies should reside.
  * **orm.auto_generate_proxies**:
    Boolean defining whether or not proxies should be generated automatically.
+ * **orm.class_metadata_factory_name**: Class name of class metadata factory.
+   Class implements `Doctrine\Common\Persistence\Mapping\ClassMetadataFactory`.
+ * **orm.default_repository_class**: Class name of default repository.
+   Class implements `Doctrine\Common\Persistence\ObjectRepository`.
+ * **orm.repository_factory**: Repository factory, instance `Doctrine\ORM\Repository\RepositoryFactory`.
+ * **orm.entity_listener_resolver**: Entity listener resolver, instance
+   `Doctrine\ORM\Mapping\EntityListenerResolver`.
  * **orm.default_cache**:
    String or array describing default cache implementation.
  * **orm.add_mapping_driver**:
@@ -322,6 +331,15 @@ Configuration
        return $config;
    }));
    ```
+ * **orm.strategy**:
+   * **naming**: Naming strategy, instance `Doctrine\ORM\Mapping\NamingStrategy`.
+   * **quote**: Quote strategy, instance `Doctrine\ORM\Mapping\QuoteStrategy`.
+ * **orm.custom.functions**:
+   * **string**, **numeric**, **datetime**: Custom DQL functions, array of class names indexed by DQL function name.
+     Classes are subclasses of `Doctrine\ORM\Query\AST\Functions\FunctionNode`.
+   * **hydration_modes**: Hydrator class names, indexed by hydration mode name.
+     Classes are subclasses of `Doctrine\ORM\Internal\Hydration\AbstractHydrator`.
+  
 
 ### Services
 
