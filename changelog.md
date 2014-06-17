@@ -1,3 +1,8 @@
+## v1.0.5 (2014-06-17)
+
+ * @c960657: Support remaining config options (#22)
+ * @iolloyd: Remove unneeded passing of Pimple $app (#25)
+
 ## v1.0.4 (2013-12-11)
 
  * @mrkrstphr: Custom types (#21)

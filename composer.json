@@ -35,10 +35,5 @@
             "Dflydev\\Pimple\\Provider\\DoctrineOrm": "src",
             "Dflydev\\Silex\\Provider\\DoctrineOrm": "src"
         }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
     }
 }
