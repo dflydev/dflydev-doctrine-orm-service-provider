@@ -300,6 +300,12 @@ $loader = require __DIR__ . '/../vendor/autoload.php';
 \Doctrine\Common\Annotations\AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
 ```
 
+### Why is there no manager registry implementation?
+
+There is allready a thirdparty `ManagerRegistry` implementation at [saxulum-doctrine-orm-manager-registry-provider][7].
+It support the `entity` type known of the form component, adds the `UniqueEntity` validator and a command line integration.
+
+
 License
 -------
 
@@ -330,6 +336,7 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [4]: https://github.com/doctrine/DoctrineBundle
 [5]: https://github.com/symfony/symfony/tree/master/src/Symfony/Bridge/Doctrine
 [6]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
+[7]: https://github.com/saxulum/saxulum-doctrine-orm-manager-registry-provider
 
 [dflydev]: irc://irc.freenode.net/#dflydev
 [silex-php]: irc://irc.freenode.net/#silex-php
