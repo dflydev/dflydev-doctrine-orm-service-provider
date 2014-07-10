@@ -117,7 +117,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         $container['orm.ems.config'] = function ($container) {
             $container['orm.ems.options.initializer']();
 
-            $configs = new \Pimple();
+            $configs = new Container();
             foreach ($container['orm.ems.options'] as $name => $options) {
                 $config = new Configuration;
 
