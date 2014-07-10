@@ -1,5 +1,7 @@
 ## 2.0.x-dev
 
+ * @andrewshell: Use Pimple\Container instead of Pimple for $configs (#34)
+ * @dominikzogg: Remove Silex tests (#31)
  * @simensen: Purge PSR-0 Resource Locator
  * @dominikzogg: Support for Pimple 2 (#26)
 
