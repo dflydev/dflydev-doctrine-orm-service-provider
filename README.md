@@ -80,9 +80,29 @@ $container->register(new DoctrineOrmServiceProvider, array(
                 "path" => __DIR__."/src/Foo/Entities",
             ),
             array(
+                "type" => "yml",
+                "namespace" => "Bat\Entities",
+                "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            array(
                 "type" => "xml",
                 "namespace" => "Bat\Entities",
                 "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            array(
+                "type" => "simpleyml",
+                "namespace" => "Bat\Entities",
+                "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            array(
+                "type" => "simplexml",
+                "namespace" => "Bat\Entities",
+                "path" => __DIR__."/src/Bat/Resources/mappings",
+            ),
+            array(
+                "type" => "php",
+                "namespace" => "Foo\Entities",
+                "path" => __DIR__."/src/Foo/Entities",
             ),
         ),
     ),
@@ -157,7 +177,7 @@ Configuration
 
      Each mapping definition should be an array with the following
      options:
-     * **type**: Mapping driver type, one of `annotation`, `xml`, `yml` or `php`.
+     * **type**: Mapping driver type, one of `annotation`, `xml`, `yml`, `simplexml`, `simpleyml` or `php`.
      * **namespace**: Namespace in which the entities reside.
 
      Additionally, each mapping definition should contain one of the
