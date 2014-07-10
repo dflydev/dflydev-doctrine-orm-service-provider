@@ -28,6 +28,8 @@ use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\Driver;
+use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
+use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
@@ -127,9 +129,9 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 $config->setProxyNamespace($container['orm.proxies_namespace']);
                 $config->setAutoGenerateProxyClasses($container['orm.auto_generate_proxies']);
 
-                $config->setCustomStringFunctions($container['orm.custom.functions.string']); 
-                $config->setCustomNumericFunctions($container['orm.custom.functions.numeric']); 
-                $config->setCustomDatetimeFunctions($container['orm.custom.functions.datetime']); 
+                $config->setCustomStringFunctions($container['orm.custom.functions.string']);
+                $config->setCustomNumericFunctions($container['orm.custom.functions.numeric']);
+                $config->setCustomDatetimeFunctions($container['orm.custom.functions.datetime']);
                 $config->setCustomHydrationModes($container['orm.custom.hydration_modes']);
 
                 $config->setClassMetadataFactoryName($container['orm.class_metadata_factory_name']);
@@ -141,6 +143,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 $config->setNamingStrategy($container['orm.strategy.naming']);
                 $config->setQuoteStrategy($container['orm.strategy.quote']);
 
+                /** @var MappingDriverChain $chain */
                 $chain = $container['orm.mapping_driver_chain.locator']($name);
 
                 foreach ((array) $options['mappings'] as $entity) {
@@ -169,6 +172,14 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                             break;
                         case 'xml':
                             $driver = new XmlDriver($entity['path']);
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
+                        case 'simpleyml':
+                            $driver = new SimplifiedYamlDriver(array($entity['path'] => $entity['namespace']));
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
+                        case 'simplexml':
+                            $driver = new SimplifiedXmlDriver(array($entity['path'] => $entity['namespace']));
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'php':
@@ -365,19 +376,19 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $driverChain->addDriver($mappingDriver, $namespace);
         });
 
-        $container['orm.strategy.naming'] = function($container) {
+        $container['orm.strategy.naming'] = function ($container) {
             return new DefaultNamingStrategy;
         };
 
-        $container['orm.strategy.quote'] = function($container) {
+        $container['orm.strategy.quote'] = function ($container) {
             return new DefaultQuoteStrategy;
         };
 
-        $container['orm.entity_listener_resolver'] = function($container) {
+        $container['orm.entity_listener_resolver'] = function ($container) {
             return new DefaultEntityListenerResolver;
         };
 
-        $container['orm.repository_factory'] = function($container) {
+        $container['orm.repository_factory'] = function ($container) {
             return new DefaultRepositoryFactory;
         };
 
