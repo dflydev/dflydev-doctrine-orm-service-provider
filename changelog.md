@@ -1,5 +1,6 @@
 ## 2.0.x-dev
 
+ * @dominikzogg: Add Simple driver support (#38)
  * @andrewshell: Use Pimple\Container instead of Pimple for $configs (#34)
  * @dominikzogg: Remove Silex tests (#31)
  * @simensen: Purge PSR-0 Resource Locator
