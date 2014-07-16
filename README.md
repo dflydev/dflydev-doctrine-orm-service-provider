@@ -145,6 +145,15 @@ $app->register(new DoctrineOrmServiceProvider, array(
                 "namespace" => "Bat\Entities",
                 "path" => __DIR__."/src/Bat/Resources/mappings",
             ),
+            // As of 1.1, you can also use the simplified
+            // XML/YAML driver (Symfony2 style)
+            // Mapping files can be named like Foo.orm.yml
+            // instead of Baz.Entities.Foo.dcm.yml
+            array(
+                "type" => "simple_yml",
+                "namespace" => "Baz\Entities",
+                "path" => __DIR__."/src/Bat/Resources/config/doctrine",
+            ),
             // Using PSR-0 namespaceish embedded resources
             // (requires registering a PSR-0 Resource Locator
             // Service Provider)
@@ -201,8 +210,10 @@ Configuration
 
      Each mapping definition should be an array with the following
      options:
-     * **type**: Mapping driver type, one of `annotation`, `xml`, `yml` or `php`.
+     * **type**: Mapping driver type, one of `annotation`, `xml`, `yml`, `simple_xml`, `simple_yml` or `php`.
      * **namespace**: Namespace in which the entities reside.
+
+     *New: the `simple_xml` and `simple_yml` driver types were added in v1.1 and provide support for the [simplified XML driver][10] and [simplified YAML driver][11] of Doctrine.*
 
      Additionally, each mapping definition should contain one of the
      following options:
@@ -405,6 +416,8 @@ Some inspiration was also taken from [Doctrine Bundle][4] and
 [7]: https://packagist.org/packages/dflydev/doctrine-orm-service-provider
 [8]: https://github.com/Cilex/Cilex/blob/master/src/Cilex/Provider/DoctrineServiceProvider.php
 [9]: https://github.com/saxulum/saxulum-doctrine-orm-manager-registry-provider
+[10]: http://docs.doctrine-project.org/en/latest/reference/xml-mapping.html#simplified-xml-driver
+[11]: http://docs.doctrine-project.org/en/latest/reference/yaml-mapping.html#simplified-yaml-driver
 
 [#dflydev]: irc://irc.freenode.net/#dflydev
 [#silex-php]: irc://irc.freenode.net/#silex-php

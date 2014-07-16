@@ -28,6 +28,8 @@ use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\Driver;
+use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
+use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
@@ -168,8 +170,16 @@ class DoctrineOrmServiceProvider
                             $driver = new YamlDriver($entity['path']);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
+                        case 'simple_yml':
+                            $driver = new SimplifiedYamlDriver(array($entity['path'] => $entity['namespace']));
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
                         case 'xml':
                             $driver = new XmlDriver($entity['path']);
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
+                        case 'simple_xml':
+                            $driver = new SimplifiedXmlDriver(array($entity['path'] => $entity['namespace']));
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'php':
