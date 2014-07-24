@@ -1,4 +1,5 @@
-## v1.1.0-dev
+## v1.0.6 (2014-07-24)
+
  * @dirkluijk: Added support for simple YAML/XML drivers
 
 ## v1.0.5 (2014-06-17)
