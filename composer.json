@@ -18,7 +18,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "pimple/pimple": "~2.1",
+        "pimple/pimple": "~3.0",
         "doctrine/orm": "~2.3"
     },
     "autoload": {
