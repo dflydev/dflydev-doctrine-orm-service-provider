@@ -130,19 +130,6 @@ $app->register(new DoctrineOrmServiceProvider, array(
                 "namespace" => "Bat\Entities",
                 "path" => __DIR__."/src/Bat/Resources/mappings",
             ),
-            // Using PSR-0 namespaceish embedded resources
-            // (requires registering a PSR-0 Resource Locator
-            // Service Provider)
-            array(
-                "type" => "annotation",
-                "namespace" => "Baz\Entities",
-                "resources_namespace" => "Baz\Entities",
-            ),
-            array(
-                "type" => "xml",
-                "namespace" => "Bar\Entities",
-                "resources_namespace" => "Bar\Resources\mappings",
-            ),
         ),
     ),
 ));
