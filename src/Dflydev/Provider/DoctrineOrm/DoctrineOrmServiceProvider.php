@@ -47,7 +47,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
     public function register(Container $container)
     {
         foreach ($this->getOrmDefaults() as $key => $value) {
-            if (!isset($app[$key])) {
+            if (!isset($container[$key])) {
                 $container[$key] = $value;
             }
         }
