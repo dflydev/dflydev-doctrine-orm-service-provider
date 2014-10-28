@@ -1,5 +1,6 @@
-## 2.0.x-dev
+## v2.0.0 (2014-07-24)
 
+ * @andrewshell: Support Pimple 3 (#39)
  * @dominikzogg: Add Simple driver support (#38)
  * @andrewshell: Use Pimple\Container instead of Pimple for $configs (#34)
  * @dominikzogg: Remove Silex tests (#31)
