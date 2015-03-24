@@ -297,6 +297,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $redis = $container['orm.cache.factory.backing_redis']();
             $redis->connect($cacheOptions['host'], $cacheOptions['port']);
 
+            if (isset($cacheOptions['password'])) {
+                $redis->auth($cacheOptions['password']);
+            }
+
             $cache = new RedisCache;
             $cache->setRedis($redis);
 
