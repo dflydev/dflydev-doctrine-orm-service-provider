@@ -327,6 +327,30 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return new FilesystemCache($cacheOptions['path']);
         });
 
+        $app['orm.cache.factory.couchbase'] = $app->protect(function($cacheOptions) use ($app) {
+					$host='';
+					$bucketName='';
+					$user='';
+					$password='';
+					if (empty($cacheOptions['host'])) {
+						$host='127.0.0.1';
+					}
+					if (empty($cacheOptions['bucket'])) {
+						$bucketName='default';
+					}
+					if (!empty($cacheOptions['user'])) {
+						$user=$cacheOptions['user'];
+					}
+					if (!empty($cacheOptions['password'])) {
+						$password=$cacheOptions['password'];
+					}
+
+					$couchbase = new \Couchbase($host,$user,$password,$bucketName);
+					$cache = new CouchbaseCache();
+					$cache->setCouchbase($couchbase);
+					return $cache;
+				});
+
         $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
             switch ($driver) {
                 case 'array':
@@ -343,6 +367,8 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                     return $container['orm.cache.factory.filesystem']($cacheOptions);
                 case 'redis':
                     return $container['orm.cache.factory.redis']($cacheOptions);
+                case 'couchbase':
+										return $app['orm.cache.factory.couchbase']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
