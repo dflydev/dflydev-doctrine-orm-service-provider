@@ -17,6 +17,7 @@ use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\MemcachedCache;
+use Doctrine\Common\Cache\CouchbaseCache;
 use Doctrine\Common\Cache\XcacheCache;
 use Doctrine\Common\Cache\RedisCache;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
