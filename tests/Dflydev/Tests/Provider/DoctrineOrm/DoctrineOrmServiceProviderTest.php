@@ -113,7 +113,6 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains('/../../../../../../../cache/doctrine/proxies', $container['orm.em.config']->getProxyDir());
         $this->assertEquals('DoctrineProxy', $container['orm.em.config']->getProxyNamespace());
-echo PHP_EOL . $container['orm.em.config']->getAutoGenerateProxyClasses() . PHP_EOL;
         $this->assertTrue($container['orm.em.config']->getAutoGenerateProxyClasses());
     }
 
