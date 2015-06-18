@@ -328,7 +328,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return new FilesystemCache($cacheOptions['path']);
         });
 
-        $app['orm.cache.factory.couchbase'] = $container->protect(function($cacheOptions){
+        $container['orm.cache.factory.couchbase'] = $container->protect(function($cacheOptions){
           $host='';
           $bucketName='';
           $user='';
