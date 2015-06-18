@@ -129,9 +129,9 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 $config->setProxyNamespace($container['orm.proxies_namespace']);
                 $config->setAutoGenerateProxyClasses($container['orm.auto_generate_proxies']);
 
-                $config->setCustomStringFunctions($container['orm.custom.functions.string']); 
-                $config->setCustomNumericFunctions($container['orm.custom.functions.numeric']); 
-                $config->setCustomDatetimeFunctions($container['orm.custom.functions.datetime']); 
+                $config->setCustomStringFunctions($container['orm.custom.functions.string']);
+                $config->setCustomNumericFunctions($container['orm.custom.functions.numeric']);
+                $config->setCustomDatetimeFunctions($container['orm.custom.functions.datetime']);
                 $config->setCustomHydrationModes($container['orm.custom.hydration_modes']);
 
                 $config->setClassMetadataFactoryName($container['orm.class_metadata_factory_name']);
@@ -327,29 +327,29 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return new FilesystemCache($cacheOptions['path']);
         });
 
-        $app['orm.cache.factory.couchbase'] = $app->protect(function($cacheOptions) use ($app) {
-					$host='';
-					$bucketName='';
-					$user='';
-					$password='';
-					if (empty($cacheOptions['host'])) {
-						$host='127.0.0.1';
-					}
-					if (empty($cacheOptions['bucket'])) {
-						$bucketName='default';
-					}
-					if (!empty($cacheOptions['user'])) {
-						$user=$cacheOptions['user'];
-					}
-					if (!empty($cacheOptions['password'])) {
-						$password=$cacheOptions['password'];
-					}
+        $app['orm.cache.factory.couchbase'] = $container->protect(function($cacheOptions){
+          $host='';
+          $bucketName='';
+          $user='';
+          $password='';
+          if (empty($cacheOptions['host'])) {
+            $host='127.0.0.1';
+          }
+          if (empty($cacheOptions['bucket'])) {
+            $bucketName='default';
+          }
+          if (!empty($cacheOptions['user'])) {
+            $user=$cacheOptions['user'];
+          }
+          if (!empty($cacheOptions['password'])) {
+            $password=$cacheOptions['password'];
+          }
 
-					$couchbase = new \Couchbase($host,$user,$password,$bucketName);
-					$cache = new CouchbaseCache();
-					$cache->setCouchbase($couchbase);
-					return $cache;
-				});
+          $couchbase = new \Couchbase($host,$user,$password,$bucketName);
+          $cache = new CouchbaseCache();
+          $cache->setCouchbase($couchbase);
+          return $cache;
+        });
 
         $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
             switch ($driver) {
@@ -368,7 +368,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 case 'redis':
                     return $container['orm.cache.factory.redis']($cacheOptions);
                 case 'couchbase':
-										return $app['orm.cache.factory.couchbase']($cacheOptions);
+                    return $container['orm.cache.factory.couchbase']($cacheOptions);
                 default:
                     throw new \RuntimeException("Unsupported cache type '$driver' specified");
             }
