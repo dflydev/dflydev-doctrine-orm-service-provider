@@ -113,7 +113,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains('/../../../../../../../cache/doctrine/proxies', $container['orm.em.config']->getProxyDir());
         $this->assertEquals('DoctrineProxy', $container['orm.em.config']->getProxyNamespace());
-        $this->assertTrue($container['orm.em.config']->getAutoGenerateProxyClasses());
+        $this->assertEquals(1,$container['orm.em.config']->getAutoGenerateProxyClasses());
     }
 
     /**
@@ -142,7 +142,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('/path/to/proxies', $container['orm.em.config']->getProxyDir());
         $this->assertEquals('TestDoctrineOrmProxiesNamespace', $container['orm.em.config']->getProxyNamespace());
-        $this->assertFalse($container['orm.em.config']->getAutoGenerateProxyClasses());
+        $this->assertEquals(0,$container['orm.em.config']->getAutoGenerateProxyClasses());
         $this->assertEquals($metadataFactoryName, $container['orm.em.config']->getClassMetadataFactoryName());
         $this->assertEquals($entityRepositoryClassName, $container['orm.em.config']->getDefaultRepositoryClassName());
         $this->assertEquals($entityListenerResolver, $container['orm.em.config']->getEntityListenerResolver());
