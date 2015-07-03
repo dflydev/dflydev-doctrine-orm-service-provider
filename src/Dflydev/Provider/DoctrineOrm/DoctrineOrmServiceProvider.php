@@ -163,8 +163,13 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                                 isset($entity['use_simple_annotation_reader'])
                                 ? $entity['use_simple_annotation_reader']
                                 : true;
-                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
-                            $chain->addDriver($driver, $entity['namespace']);
+                                 if (!isset($app["orm.ems.annotation.driver"])) {
+                                    $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
+                                    $chain->addDriver($driver, $entity['namespace']);
+                                break;
+                            }
+
+                            $chain->addDriver($app["orm.ems.annotation.driver"], $entity['namespace']);
                             break;
                         case 'yml':
                             $driver = new YamlDriver($entity['path']);
