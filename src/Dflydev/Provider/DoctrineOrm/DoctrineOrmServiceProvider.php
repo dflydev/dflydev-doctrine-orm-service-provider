@@ -448,7 +448,9 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             'orm.proxies_dir' => __DIR__.'/../../../../../../../../cache/doctrine/proxies',
             'orm.proxies_namespace' => 'DoctrineProxy',
             'orm.auto_generate_proxies' => true,
-            'orm.default_cache' => 'array',
+            'orm.default_cache' => array(
+                'driver' => 'array',
+            ),
             'orm.custom.functions.string' => array(),
             'orm.custom.functions.numeric' => array(),
             'orm.custom.functions.datetime' => array(),
