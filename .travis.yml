@@ -12,7 +12,7 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-before_script:
+install:
   - composer install --prefer-dist
 
 script: phpunit --coverage-text --verbose
