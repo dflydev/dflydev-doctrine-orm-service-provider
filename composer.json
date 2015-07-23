@@ -23,7 +23,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Dflydev\\Provider\\DoctrineOrm\\": "src/Dflydev/Provider/DoctrineOrm"
+            "Dflydev\\Provider\\DoctrineOrm\\": "src"
         }
     },
     "extra": {

@@ -12,7 +12,7 @@
         >
     <testsuites>
         <testsuite name="Doctrine ORM Service Provider Test Suite">
-            <directory>./tests/Dflydev/</directory>
+            <directory>./tests/</directory>
         </testsuite>
     </testsuites>
     <filter>
