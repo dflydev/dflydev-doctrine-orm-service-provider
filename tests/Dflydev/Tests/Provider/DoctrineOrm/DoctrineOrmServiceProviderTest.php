@@ -226,7 +226,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
             $this->fail('Expected invalid query cache driver exception');
         } catch (\RuntimeException $e) {
-            $this->assertEquals("Unsupported cache type 'INVALID' specified", $e->getMessage());
+            $this->assertEquals("Factory 'orm.cache.factory.INVALID' for cache type 'INVALID' not defined (is it spelled correctly?)", $e->getMessage());
         }
     }
 
@@ -250,7 +250,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
 
             $this->fail('Expected invalid query cache driver exception');
         } catch (\RuntimeException $e) {
-            $this->assertEquals("Unsupported cache type 'INVALID' specified", $e->getMessage());
+            $this->assertEquals("Factory 'orm.cache.factory.INVALID' for cache type 'INVALID' not defined (is it spelled correctly?)", $e->getMessage());
         }
     }
 
