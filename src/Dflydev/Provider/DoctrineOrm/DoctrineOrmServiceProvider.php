@@ -357,26 +357,12 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         });
 
         $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
-            switch ($driver) {
-                case 'array':
-                    return $container['orm.cache.factory.array']();
-                case 'apc':
-                    return $container['orm.cache.factory.apc']();
-                case 'xcache':
-                    return $container['orm.cache.factory.xcache']();
-                case 'memcache':
-                    return $container['orm.cache.factory.memcache']($cacheOptions);
-                case 'memcached':
-                    return $container['orm.cache.factory.memcached']($cacheOptions);
-                case 'filesystem':
-                    return $container['orm.cache.factory.filesystem']($cacheOptions);
-                case 'redis':
-                    return $container['orm.cache.factory.redis']($cacheOptions);
-                case 'couchbase':
-                    return $container['orm.cache.factory.couchbase']($cacheOptions);
-                default:
-                    throw new \RuntimeException("Unsupported cache type '$driver' specified");
+            $cacheFactoryKey = 'orm.cache.factory.'.$driver;
+            if (!isset($container[$cacheFactoryKey])) {
+                throw new \RuntimeException("Factory '$cacheFactoryKey' for cache type '$driver' not defined (is it spelled correctly?)");
             }
+
+            return $container[$cacheFactoryKey]($cacheOptions);
         });
 
         $container['orm.mapping_driver_chain.locator'] = $container->protect(function ($name = null) use ($container) {
