@@ -1,3 +1,7 @@
+## v1.0.7 (2015-09-07)
+
+ * @c960657: Security fix for FileCache (#57)
+
 ## v1.0.6 (2014-07-24)
 
  * @dirkluijk: Added support for simple YAML/XML drivers
