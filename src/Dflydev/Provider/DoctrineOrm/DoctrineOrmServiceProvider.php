@@ -325,7 +325,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 throw new \RuntimeException('FilesystemCache path not defined');
             }
 
-            return new FilesystemCache($cacheOptions['path']);
+            $cacheOptions += array(
+                'extension' => FilesystemCache::EXTENSION,
+                'umask' => 0002,
+            );
+            return new FilesystemCache($cacheOptions['path'], $cacheOptions['extension'], $cacheOptions['umask']);
         });
 
         $container['orm.cache.factory.couchbase'] = $container->protect(function($cacheOptions){
