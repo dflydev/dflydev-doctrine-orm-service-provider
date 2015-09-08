@@ -12,6 +12,8 @@
 namespace Dflydev\Tests\Provider\DoctrineOrm;
 
 use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Doctrine\Common\Cache\VoidCache;
+use Doctrine\ORM\EntityManager;
 use Pimple\Container;
 
 /**
@@ -252,6 +254,19 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         } catch (\RuntimeException $e) {
             $this->assertEquals("Factory 'orm.cache.factory.INVALID' for cache type 'INVALID' not defined (is it spelled correctly?)", $e->getMessage());
         }
+    }
+
+    /**
+     * User can inject their own cache object.
+     */
+    public function testCacheInjection() {
+        $container = $this->createMockDefaultApp();
+
+        $container->register(new DoctrineOrmServiceProvider, array('orm.default_cache' => new VoidCache()));
+
+        /** @var EntityManager $em */
+        $em = $container['orm.em'];
+        $this->assertInstanceOf('Doctrine\Common\Cache\VoidCache', $em->getConfiguration()->getHydrationCacheImpl());
     }
 
     /**

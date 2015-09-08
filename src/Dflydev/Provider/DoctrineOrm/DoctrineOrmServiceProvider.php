@@ -357,6 +357,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         });
 
         $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
+            if ($driver instanceof CacheProvider) {
+                return $driver;
+            }
+
             $cacheFactoryKey = 'orm.cache.factory.'.$driver;
             if (!isset($container[$cacheFactoryKey])) {
                 throw new \RuntimeException("Factory '$cacheFactoryKey' for cache type '$driver' not defined (is it spelled correctly?)");
