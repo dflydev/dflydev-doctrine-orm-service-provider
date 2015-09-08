@@ -95,6 +95,19 @@ class DoctrineOrmServiceProvider
 
             $ems = new \Pimple();
             foreach ($app['orm.ems.options'] as $name => $options) {
+                $ems[$name] = $app->share(function() use ($name, $app) {
+                    return $app['orm.ems.factory'][$name]();
+                });
+            }
+
+            return $ems;
+        });
+
+        $app['orm.ems.factory'] = $app->share(function($app) {
+            $app['orm.ems.options.initializer']();
+
+            $factory = new \Pimple();
+            foreach ($app['orm.ems.options'] as $name => $options) {
                 if ($app['orm.ems.default'] === $name) {
                     // we use shortcuts here in case the default has been overridden
                     $config = $app['orm.em.config'];
@@ -102,7 +115,7 @@ class DoctrineOrmServiceProvider
                     $config = $app['orm.ems.config'][$name];
                 }
 
-                $ems[$name] = $app->share(function ($ems) use ($app, $options, $config) {
+                $factory[$name] = $app->protect(function () use ($app, $options, $config) {
                     return EntityManager::create(
                         $app['dbs'][$options['connection']],
                         $config,
@@ -111,7 +124,7 @@ class DoctrineOrmServiceProvider
                 });
             }
 
-            return $ems;
+            return $factory;
         });
 
         $app['orm.ems.config'] = $app->share(function($app) {

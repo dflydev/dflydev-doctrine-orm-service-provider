@@ -52,6 +52,32 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test entity manager factory.
+     */
+    public function testEntityManagerFactory()
+    {
+        $app = $this->createMockDefaultApp();
+
+        $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
+        $doctrineOrmServiceProvider->register($app);
+
+        // Only one instance is created.
+        $em1 = $app['orm.em'];
+        $this->assertSame($em1, $app['orm.em']);
+        $this->assertSame($em1, $app['orm.ems']['default']);
+
+        // Reset the entity manager.
+        $app['orm.em'] = $app['orm.ems']['default'] = $app['orm.ems.factory'][$app['orm.ems.default']]();
+
+        // One more instance is created.
+        $em2 = $app['orm.em'];
+        $this->assertInstanceOf('Doctrine\ORM\EntityManager', $em2);
+        $this->assertNotSame($em1, $em2);
+        $this->assertSame($em2, $app['orm.em']);
+        $this->assertSame($em2, $app['orm.ems']['default']);
+    }
+
+    /**
      * Test registration (test expected class for default implementations)
      */
     public function testRegisterDefaultImplementations()
@@ -61,7 +87,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
         $doctrineOrmServiceProvider->register($app);
 
-        $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
+        $this->assertSame($app['orm.em'], $app['orm.ems']['default']);
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getQueryCacheImpl());
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getResultCacheImpl());
         $this->assertInstanceOf('Doctrine\Common\Cache\ArrayCache', $app['orm.em.config']->getMetadataCacheImpl());
@@ -91,7 +117,7 @@ class DoctrineOrmServiceProviderTest extends \PHPUnit_Framework_TestCase
         $doctrineOrmServiceProvider = new DoctrineOrmServiceProvider;
         $doctrineOrmServiceProvider->register($app);
 
-        $this->assertEquals($app['orm.em'], $app['orm.ems']['default']);
+        $this->assertSame($app['orm.em'], $app['orm.ems']['default']);
         $this->assertEquals($queryCache, $app['orm.em.config']->getQueryCacheImpl());
         $this->assertEquals($resultCache, $app['orm.em.config']->getResultCacheImpl());
         $this->assertEquals($metadataCache, $app['orm.em.config']->getMetadataCacheImpl());
