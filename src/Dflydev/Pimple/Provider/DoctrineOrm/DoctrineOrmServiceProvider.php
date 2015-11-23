@@ -27,12 +27,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
-use Doctrine\ORM\Mapping\Driver\Driver;
-use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
-use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
-use Doctrine\ORM\Mapping\Driver\XmlDriver;
-use Doctrine\ORM\Mapping\Driver\YamlDriver;
-use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 
 /**
@@ -51,9 +45,15 @@ class DoctrineOrmServiceProvider
         }
 
         $app['orm.em.default_options'] = array(
-            'connection' => 'default',
-            'mappings' => array(),
-            'types' => array()
+            'connection'              => 'default',
+            'mappings'                => array(),
+            'types'                   => array(),
+            'class.configuration'     => 'Doctrine\ORM\Configuration',
+            'class.driver.yml'        => 'Doctrine\ORM\Mapping\Driver\YamlDriver',
+            'class.driver.simple_yml' => 'Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver',
+            'class.driver.xml'        => 'Doctrine\ORM\Mapping\Driver\XmlDriver',
+            'class.driver.simple_xml' => 'Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver',
+            'class.driver.php'        => 'Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver',
         );
 
         $app['orm.ems.options.initializer'] = $app->protect(function () use ($app) {
@@ -90,7 +90,7 @@ class DoctrineOrmServiceProvider
             return $app['orm.ems.default'];
         });
 
-        $app['orm.ems'] = $app->share(function($app) {
+        $app['orm.ems'] = $app->share(function(\Pimple $app) {
             $app['orm.ems.options.initializer']();
 
             $ems = new \Pimple();
@@ -102,7 +102,7 @@ class DoctrineOrmServiceProvider
                     $config = $app['orm.ems.config'][$name];
                 }
 
-                $ems[$name] = $app->share(function ($ems) use ($app, $options, $config) {
+                $ems[$name] = $app->share(function () use ($app, $options, $config) {
                     return EntityManager::create(
                         $app['dbs'][$options['connection']],
                         $config,
@@ -114,12 +114,15 @@ class DoctrineOrmServiceProvider
             return $ems;
         });
 
-        $app['orm.ems.config'] = $app->share(function($app) {
+        $app['orm.ems.config'] = $app->share(function(\Pimple $app) {
             $app['orm.ems.options.initializer']();
 
             $configs = new \Pimple();
             foreach ($app['orm.ems.options'] as $name => $options) {
-                $config = new Configuration;
+                /**
+                 * @var $config Configuration
+                 */
+                $config = new $options['class.configuration'];
 
                 $app['orm.cache.configurer']($name, $config, $options);
 
@@ -141,6 +144,9 @@ class DoctrineOrmServiceProvider
                 $config->setNamingStrategy($app['orm.strategy.naming']);
                 $config->setQuoteStrategy($app['orm.strategy.quote']);
 
+                /**
+                 * @var MappingDriverChain $chain
+                 */
                 $chain = $app['orm.mapping_driver_chain.locator']($name);
                 foreach ((array) $options['mappings'] as $entity) {
                     if (!is_array($entity)) {
@@ -150,46 +156,30 @@ class DoctrineOrmServiceProvider
                     }
 
                     if (!empty($entity['resources_namespace'])) {
-                        $entity['path'] = $app['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
+                        if($app->offsetExists('psr0_resource_locator')) {
+                            $entity['path'] = $app['psr0_resource_locator']->findFirstDirectory($entity['resources_namespace']);
+                        } else {
+                            throw new \InvalidArgumentException('Not exist psr0_resource_locator');
+                        }
                     }
 
                     if (isset($entity['alias'])) {
                         $config->addEntityNamespace($entity['alias'], $entity['namespace']);
                     }
 
-                    switch ($entity['type']) {
-                        case 'annotation':
-                            $useSimpleAnnotationReader =
-                                isset($entity['use_simple_annotation_reader'])
-                                ? $entity['use_simple_annotation_reader']
-                                : true;
-                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'yml':
-                            $driver = new YamlDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'simple_yml':
-                            $driver = new SimplifiedYamlDriver(array($entity['path'] => $entity['namespace']));
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'xml':
-                            $driver = new XmlDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'simple_xml':
-                            $driver = new SimplifiedXmlDriver(array($entity['path'] => $entity['namespace']));
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'php':
-                            $driver = new StaticPHPDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        default:
+                    if('annotation' === $entity['type']){
+                        $useSimpleAnnotationReader = isset($entity['use_simple_annotation_reader'])
+                            ? $entity['use_simple_annotation_reader']
+                            : true;
+                        $driver =  $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
+                    } else {
+                        if( isset($app['orm.driver.'.$entity['type']]) ) {
+                            $driver = $app['orm.driver.'.$entity['type']]( $options, $entity );
+                        } else {
                             throw new \InvalidArgumentException(sprintf('"%s" is not a recognized driver', $entity['type']));
-                            break;
+                        }
                     }
+                    $chain->addDriver($driver, $entity['namespace']);
                 }
                 $config->setMetadataDriverImpl($chain);
 
@@ -205,6 +195,31 @@ class DoctrineOrmServiceProvider
             }
 
             return $configs;
+        });
+
+        $app['orm.driver.yml']        =  $app->share(function ($options, $entity) {
+            $className = $options['class.driver.yml'];
+            return new $className($entity['path']);
+        });
+
+        $app['orm.driver.simple_yml'] = $app->share(function ($options, $entity) {
+            $className = $options['class.driver.simple_yml'];
+            return new $className( array($entity['path'] => $entity['namespace']) );
+        });
+
+        $app['orm.driver.xml']        = $app->share(function ($options, $entity) {
+            $className = $options['class.driver.xml'];
+            return new $className($entity['path']);
+        });
+
+        $app['orm.driver.simple_xml'] = $app->share(function ($options, $entity) {
+            $className = $options['class.driver.simple_xml'];
+            return new $className( array($entity['path'] => $entity['namespace']) );
+        });
+
+        $app['orm.driver.php']        = $app->share(function ($options, $entity) {
+            $className = $options['class.driver.php'];
+            return new $className($entity['path']);
         });
 
         $app['orm.cache.configurer'] = $app->protect(function($name, Configuration $config, $options) use ($app) {
@@ -256,6 +271,9 @@ class DoctrineOrmServiceProvider
                 throw new \RuntimeException('Host and port options need to be specified for memcache cache');
             }
 
+            /**
+             * @var $memcache \Memcache
+             */
             $memcache = $app['orm.cache.factory.backing_memcache']();
             $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
 
@@ -273,7 +291,9 @@ class DoctrineOrmServiceProvider
             if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
                 throw new \RuntimeException('Host and port options need to be specified for memcached cache');
             }
-
+            /**
+             * @var $memcached \Memcached
+             */
             $memcached = $app['orm.cache.factory.backing_memcached']();
             $memcached->addServer($cacheOptions['host'], $cacheOptions['port']);
 
@@ -291,7 +311,9 @@ class DoctrineOrmServiceProvider
             if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
                 throw new \RuntimeException('Host and port options need to be specified for redis cache');
             }
-
+            /**
+             * @var $redis \Redis
+             */
             $redis = $app['orm.cache.factory.backing_redis']();
             $redis->connect($cacheOptions['host'], $cacheOptions['port']);
 
@@ -365,7 +387,7 @@ class DoctrineOrmServiceProvider
             return $app[$cacheInstanceKey] = $app['orm.mapping_driver_chain.factory']($name);
         });
 
-        $app['orm.mapping_driver_chain.factory'] = $app->protect(function($name) use ($app) {
+        $app['orm.mapping_driver_chain.factory'] = $app->protect(function() use ($app) {
             return new MappingDriverChain;
         });
 
@@ -375,7 +397,9 @@ class DoctrineOrmServiceProvider
             if (null === $name) {
                 $name = $app['orm.ems.default'];
             }
-
+            /**
+             * @var MappingDriverChain $driverChain
+             */
             $driverChain = $app['orm.mapping_driver_chain.locator']($name);
             $driverChain->addDriver($mappingDriver, $namespace);
         });
@@ -383,7 +407,11 @@ class DoctrineOrmServiceProvider
         $app['orm.generate_psr0_mapping'] = $app->protect(function($resourceMapping) use ($app) {
             $mapping = array();
             foreach ($resourceMapping as $resourceNamespace => $entityNamespace) {
-                $directory = $app['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
+                if($app->offsetExists('psr0_resource_locator')) {
+                    $directory = $app['psr0_resource_locator']->findFirstDirectory($resourceNamespace);
+                } else {
+                    throw new \InvalidArgumentException('Not exist psr0_resource_locator');
+                }
                 if (!$directory) {
                     throw new \InvalidArgumentException("Resources for mapping '$entityNamespace' could not be located; Looked for mapping resources at '$resourceNamespace'");
                 }
@@ -393,19 +421,19 @@ class DoctrineOrmServiceProvider
             return $mapping;
         });
 
-        $app['orm.strategy.naming'] = $app->share(function($app) {
+        $app['orm.strategy.naming'] = $app->share(function() {
             return new DefaultNamingStrategy;
         });
 
-        $app['orm.strategy.quote'] = $app->share(function($app) {
+        $app['orm.strategy.quote'] = $app->share(function() {
             return new DefaultQuoteStrategy;
         });
 
-        $app['orm.entity_listener_resolver'] = $app->share(function($app) {
+        $app['orm.entity_listener_resolver'] = $app->share(function() {
             return new DefaultEntityListenerResolver;
         });
 
-        $app['orm.repository_factory'] = $app->share(function($app) {
+        $app['orm.repository_factory'] = $app->share(function() {
             return new DefaultRepositoryFactory;
         });
 
@@ -424,8 +452,6 @@ class DoctrineOrmServiceProvider
 
     /**
      * Get default ORM configuration settings.
-     *
-     * @param Application $app Application
      *
      * @return array
      */
