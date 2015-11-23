@@ -127,7 +127,8 @@ class DoctrineOrmServiceProvider
                 /**
                  * @var $config Configuration
                  */
-                $config = new $options['class.configuration'];
+                $configurationClassName = $options['class.configuration'];
+                $config = new $configurationClassName;
 
                 $app['orm.cache.configurer']($name, $config, $options);
 
