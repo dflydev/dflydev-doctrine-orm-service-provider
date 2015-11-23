@@ -203,29 +203,39 @@ class DoctrineOrmServiceProvider
             return $configs;
         });
 
-        $app['orm.driver.factory.yml']        =  $app->share(function ($options, $entity) {
-            $className = $options['class.driver.yml'];
-            return new $className($entity['path']);
+        $app['orm.driver.factory.yml']        =  $app->share(function() {
+            return function ($options, $entity) {
+                $className = $options['class.driver.yml'];
+                return new $className($entity['path']);
+            };
         });
 
-        $app['orm.driver.factory.simple_yml'] = $app->share(function ($options, $entity) {
-            $className = $options['class.driver.simple_yml'];
-            return new $className( array($entity['path'] => $entity['namespace']) );
+        $app['orm.driver.factory.simple_yml'] = $app->share(function() {
+            return function ($options, $entity) {
+                $className = $options['class.driver.simple_yml'];
+                return new $className( array($entity['path'] => $entity['namespace']) );
+            };
         });
 
-        $app['orm.driver.factory.xml']        = $app->share(function ($options, $entity) {
-            $className = $options['class.driver.xml'];
-            return new $className($entity['path']);
+        $app['orm.driver.factory.xml']        = $app->share(function() {
+            return function ($options, $entity) {
+                $className = $options['class.driver.xml'];
+                return new $className($entity['path']);
+            };
         });
 
-        $app['orm.driver.factory.simple_xml'] = $app->share(function ($options, $entity) {
-            $className = $options['class.driver.simple_xml'];
-            return new $className( array($entity['path'] => $entity['namespace']) );
+        $app['orm.driver.factory.simple_xml'] = $app->share(function() {
+            return function ($options, $entity) {
+                $className = $options['class.driver.simple_xml'];
+                return new $className( array($entity['path'] => $entity['namespace']) );
+            };
         });
 
-        $app['orm.driver.factory.php']        = $app->share(function ($options, $entity) {
-            $className = $options['class.driver.php'];
-            return new $className($entity['path']);
+        $app['orm.driver.factory.php']        = $app->share(function() {
+            return function ($options, $entity) {
+                $className = $options['class.driver.php'];
+                return new $className($entity['path']);
+            };
         });
 
         $app['orm.cache.configurer'] = $app->protect(function($name, Configuration $config, $options) use ($app) {
