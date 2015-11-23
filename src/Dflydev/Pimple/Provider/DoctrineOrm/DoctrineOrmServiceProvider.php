@@ -49,6 +49,7 @@ class DoctrineOrmServiceProvider
             'mappings'                => array(),
             'types'                   => array(),
             'class.configuration'     => 'Doctrine\ORM\Configuration',
+            'class.entityManager'     => 'Doctrine\ORM\EntityManager',
             'class.driver.yml'        => 'Doctrine\ORM\Mapping\Driver\YamlDriver',
             'class.driver.simple_yml' => 'Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver',
             'class.driver.xml'        => 'Doctrine\ORM\Mapping\Driver\XmlDriver',
@@ -103,7 +104,11 @@ class DoctrineOrmServiceProvider
                 }
 
                 $ems[$name] = $app->share(function () use ($app, $options, $config) {
-                    return EntityManager::create(
+                    /**
+                     * @var $entityManagerClassName EntityManager
+                     */
+                    $entityManagerClassName = $options['class.entityManager'];
+                    return $entityManagerClassName::create(
                         $app['dbs'][$options['connection']],
                         $config,
                         $app['dbs.event_manager'][$options['connection']]
