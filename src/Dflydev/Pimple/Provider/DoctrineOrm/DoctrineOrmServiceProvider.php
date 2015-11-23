@@ -180,7 +180,7 @@ class DoctrineOrmServiceProvider
                         $driver =  $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
                     } else {
                         if( isset($app['orm.driver.factory.'.$entity['type']]) ) {
-                            $driver = $app['orm.driver.factory.'.$entity['type']]( $options, $entity );
+                            $driver = $app['orm.driver.factory.'.$entity['type']]( $entity, $options );
                         } else {
                             throw new \InvalidArgumentException(sprintf('"%s" is not a recognized driver', $entity['type']));
                         }
@@ -204,35 +204,35 @@ class DoctrineOrmServiceProvider
         });
 
         $app['orm.driver.factory.yml']        =  $app->share(function() {
-            return function ($options, $entity) {
+            return function ( $entity, $options ) {
                 $className = $options['class.driver.yml'];
                 return new $className($entity['path']);
             };
         });
 
         $app['orm.driver.factory.simple_yml'] = $app->share(function() {
-            return function ($options, $entity) {
+            return function ( $entity, $options ) {
                 $className = $options['class.driver.simple_yml'];
                 return new $className( array($entity['path'] => $entity['namespace']) );
             };
         });
 
         $app['orm.driver.factory.xml']        = $app->share(function() {
-            return function ($options, $entity) {
+            return function ( $entity, $options ) {
                 $className = $options['class.driver.xml'];
                 return new $className($entity['path']);
             };
         });
 
         $app['orm.driver.factory.simple_xml'] = $app->share(function() {
-            return function ($options, $entity) {
+            return function ( $entity, $options ) {
                 $className = $options['class.driver.simple_xml'];
                 return new $className( array($entity['path'] => $entity['namespace']) );
             };
         });
 
         $app['orm.driver.factory.php']        = $app->share(function() {
-            return function ($options, $entity) {
+            return function ( $entity, $options ) {
                 $className = $options['class.driver.php'];
                 return new $className($entity['path']);
             };
