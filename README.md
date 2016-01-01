@@ -61,36 +61,36 @@ use Pimple\Container;
 
 $container = new Container;
 
-$container["db.options"] = array(
-    "driver" => "pdo_sqlite",
-    "path" => "/path/to/sqlite.db",
+$container['db.options'] = array(
+    'driver' => 'pdo_sqlite',
+    'path' => '/path/to/sqlite.db',
 );
 
 // ensure that $container['dbs'] and $container['dbs.event_manager']
 // are available, most likely by way of a core service provider.
 
 $container->register(new DoctrineOrmServiceProvider, array(
-    "orm.proxies_dir" => "/path/to/proxies",
-    "orm.em.options" => array(
-        "mappings" => array(
+    'orm.proxies_dir' => '/path/to/proxies',
+    'orm.em.options' => array(
+        'mappings' => array(
             // Using actual filesystem paths
             array(
-                "type" => "annotation",
-                "namespace" => "Foo\Entities",
-                "path" => __DIR__."/src/Foo/Entities",
+                'type' => 'annotation',
+                'namespace' => 'Foo\Entities',
+                'path' => __DIR__.'/src/Foo/Entities',
             ),
             array(
-                "type" => "xml",
-                "namespace" => "Bat\Entities",
-                "path" => __DIR__."/src/Bat/Resources/mappings",
+                'type' => 'xml',
+                'namespace' => 'Bat\Entities',
+                'path' => __DIR__.'/src/Bat/Resources/mappings',
             ),
             // XML/YAML driver (Symfony2 style)
             // Mapping files can be named like Foo.orm.yml
             // instead of Baz.Entities.Foo.dcm.yml
             array(
-                "type" => "simple_yml",
-                "namespace" => "Baz\Entities",
-                "path" => __DIR__."/src/Bat/Resources/config/doctrine",
+                'type' => 'simple_yml',
+                'namespace' => 'Baz\Entities',
+                'path' => __DIR__.'/src/Bat/Resources/config/doctrine',
             ),
         ),
     ),
@@ -98,6 +98,8 @@ $container->register(new DoctrineOrmServiceProvider, array(
 ```
 
 ### Silex
+
+Version 2.x of this service provider is compatible with version 2.x of Silex and version 1.x of this service provider is compatible with version 1.x of Silex. The following is an example of version 2.x of this service provider and version 2.x of Silex.
 
 ```php
 <?php
@@ -109,26 +111,26 @@ use Silex\Provider\DoctrineServiceProvider;
 $app = new Application;
 
 $app->register(new DoctrineServiceProvider, array(
-    "db.options" => array(
-        "driver" => "pdo_sqlite",
-        "path" => "/path/to/sqlite.db",
+    'db.options' => array(
+        'driver' => 'pdo_sqlite',
+        'path' => '/path/to/sqlite.db',
     ),
 ));
 
 $app->register(new DoctrineOrmServiceProvider, array(
-    "orm.proxies_dir" => "/path/to/proxies",
-    "orm.em.options" => array(
-        "mappings" => array(
+    'orm.proxies_dir' => '/path/to/proxies',
+    'orm.em.options' => array(
+        'mappings' => array(
             // Using actual filesystem paths
             array(
-                "type" => "annotation",
-                "namespace" => "Foo\Entities",
-                "path" => __DIR__."/src/Foo/Entities",
+                'type' => 'annotation',
+                'namespace' => 'Foo\Entities',
+                'path' => __DIR__.'/src/Foo/Entities',
             ),
             array(
-                "type" => "xml",
-                "namespace" => "Bat\Entities",
-                "path" => __DIR__."/src/Bat/Resources/mappings",
+                'type' => 'xml',
+                'namespace' => 'Bat\Entities',
+                'path' => __DIR__.'/src/Bat/Resources/mappings',
             ),
         ),
     ),
