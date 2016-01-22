@@ -12,8 +12,8 @@
 namespace Dflydev\Cilex\Provider\DoctrineOrm;
 
 use Dflydev\Pimple\Provider\DoctrineOrm\DoctrineOrmServiceProvider as PimpleDoctrineOrmServiceProvider;
-use Cilex\Application;
-use Cilex\ServiceProviderInterface;
+use Silex\Application;
+use Silex\ServiceProviderInterface;
 
 /**
  * Doctrine ORM Cilex Service Provider.
