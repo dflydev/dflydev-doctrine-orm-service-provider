@@ -292,11 +292,16 @@ class DoctrineOrmServiceProvider
                 throw new \RuntimeException('Host and port options need to be specified for redis cache');
             }
 
+            /** @var \Redis $redis */
             $redis = $app['orm.cache.factory.backing_redis']();
             $redis->connect($cacheOptions['host'], $cacheOptions['port']);
 
             if (isset($cacheOptions['password'])) {
                 $redis->auth($cacheOptions['password']);
+            }
+
+            if (isset($cacheOptions['database'])) {
+                $redis->select($cacheOptions['database']);
             }
 
             $cache = new RedisCache;
