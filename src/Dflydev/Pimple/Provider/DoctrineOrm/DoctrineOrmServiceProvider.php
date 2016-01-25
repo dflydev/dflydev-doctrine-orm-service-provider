@@ -240,8 +240,12 @@ class DoctrineOrmServiceProvider
 
             $cache = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
 
-            if(isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
-                $cache->setNamespace($options['cache_namespace']);
+            if ($cache instanceof CacheProvider) {
+                if (isset($options[$cacheNameKey]['namespace'])) {
+                    $cache->setNamespace($options[$cacheNameKey]['namespace']);
+                } elseif (isset($options['cache_namespace'])) {
+                    $cache->setNamespace($options['cache_namespace']);
+                }
             }
 
             return $app[$cacheInstanceKey] = $cache;
@@ -292,11 +296,16 @@ class DoctrineOrmServiceProvider
                 throw new \RuntimeException('Host and port options need to be specified for redis cache');
             }
 
+            /** @var \Redis $redis */
             $redis = $app['orm.cache.factory.backing_redis']();
             $redis->connect($cacheOptions['host'], $cacheOptions['port']);
 
             if (isset($cacheOptions['password'])) {
                 $redis->auth($cacheOptions['password']);
+            }
+
+            if (isset($cacheOptions['database'])) {
+                $redis->select($cacheOptions['database']);
             }
 
             $cache = new RedisCache;
