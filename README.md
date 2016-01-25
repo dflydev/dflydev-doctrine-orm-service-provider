@@ -187,7 +187,9 @@ Configuration
      String or array describing result cache implementation.
    * **hydration_cache** (Default: setting specified by orm.default_cache):
      String or array describing hydration cache implementation.
-   * **types**
+   * **cache_namespace**:
+     String to define a global namespace for cached keys.
+   * **types**:
      An array of custom types in the format of 'typeName' => 'Namespace\To\Type\Class'
  * **orm.ems.options**:
    Array of Entity Manager configuration sets indexed by each Entity Manager's
@@ -234,6 +236,31 @@ Configuration
    `Doctrine\ORM\Mapping\EntityListenerResolver`.
  * **orm.default_cache**:
    String or array describing default cache implementation.
+   
+   Example configuration:
+   ```php
+   <?php
+   $app['orm.ems.options'] = array(
+      // php array cache defined globally
+      'orm.default_cache' => 'array',
+      // or
+      'orm.default_cache' => array('driver' => 'array'),
+
+      // or redis cache defined as metadata cache on the default em
+      'default' => array(
+         ...
+         'metadata_cache' => array(
+            'driver' => 'redis',
+            'host' => '127.0.0.1', // mandatory redis host
+            'port' => 6379, // mandatory redis port
+            'password' => 'mypassword', // optional redis password
+            'database' => 1, // optional redis database, default: 0
+            'namespace' => 'MYNAMESPACE:' // optional namespace for this cache, otherwise cache_namespace from the current em will be used
+         )
+         ...
+      )
+   );
+   ```
  * **orm.add_mapping_driver**:
    Function providing the ability to add a mapping driver to an Entity Manager.
 
