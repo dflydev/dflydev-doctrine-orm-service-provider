@@ -240,8 +240,12 @@ class DoctrineOrmServiceProvider
 
             $cache = $app['orm.cache.factory']($driver, $options[$cacheNameKey]);
 
-            if(isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
-                $cache->setNamespace($options['cache_namespace']);
+            if ($cache instanceof CacheProvider) {
+                if (isset($options[$cacheNameKey]['namespace'])) {
+                    $cache->setNamespace($options[$cacheNameKey]['namespace']);
+                } elseif (isset($options['cache_namespace'])) {
+                    $cache->setNamespace($options['cache_namespace']);
+                }
             }
 
             return $app[$cacheInstanceKey] = $cache;
