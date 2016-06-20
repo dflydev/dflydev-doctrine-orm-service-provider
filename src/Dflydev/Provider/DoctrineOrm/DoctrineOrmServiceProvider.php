@@ -45,6 +45,11 @@ use Pimple\ServiceProviderInterface;
  */
 class DoctrineOrmServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Register ORM service.
+     *
+     * @param Container $container
+     */
     public function register(Container $container)
     {
         foreach ($this->getOrmDefaults() as $key => $value) {
@@ -427,8 +432,6 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
     /**
      * Get default ORM configuration settings.
-     *
-     * @param Container $container
      *
      * @return array
      */
