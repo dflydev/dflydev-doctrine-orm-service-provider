@@ -104,7 +104,7 @@ Version 2.x of this service provider is compatible with version 2.x of Silex and
 ```php
 <?php
 
-use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Silex\Application;
 use Silex\Provider\DoctrineServiceProvider;
 
