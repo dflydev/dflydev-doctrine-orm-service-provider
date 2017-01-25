@@ -151,50 +151,19 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
                 $chain = $container['orm.mapping_driver_chain.locator']($name);
 
-                foreach ((array) $options['mappings'] as $entity) {
-                    if (!is_array($entity)) {
+                foreach ((array) $options['mappings'] as $mappingOptions) {
+                    if (!is_array($mappingOptions)) {
                         throw new \InvalidArgumentException(
                             "The 'orm.em.options' option 'mappings' should be an array of arrays."
                         );
                     }
 
-                    if (isset($entity['alias'])) {
-                        $config->addEntityNamespace($entity['alias'], $entity['namespace']);
+                    if (isset($mappingOptions['alias'])) {
+                        $config->addEntityNamespace($mappingOptions['alias'], $mappingOptions['namespace']);
                     }
 
-                    switch ($entity['type']) {
-                        case 'annotation':
-                            $useSimpleAnnotationReader =
-                                isset($entity['use_simple_annotation_reader'])
-                                ? $entity['use_simple_annotation_reader']
-                                : true;
-                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'yml':
-                            $driver = new YamlDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'simple_yml':
-                            $driver = new SimplifiedYamlDriver(array($entity['path'] => $entity['namespace']));
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'xml':
-                            $driver = new XmlDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'simple_xml':
-                            $driver = new SimplifiedXmlDriver(array($entity['path'] => $entity['namespace']));
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'php':
-                            $driver = new StaticPHPDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        default:
-                            throw new \InvalidArgumentException(sprintf('"%s" is not a recognized driver', $entity['type']));
-                            break;
-                    }
+                    $driver = $container['orm.mapping.factory']($mappingOptions['type'], $config, $mappingOptions);
+                    $chain->addDriver($driver, $mappingOptions['namespace']);
                 }
                 $config->setMetadataDriverImpl($chain);
 
@@ -211,6 +180,43 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
             return $configs;
         };
+
+        $container['orm.mapping.factory.annotation'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            $useSimpleAnnotationReader =
+                isset($mappingOptions['use_simple_annotation_reader'])
+                ? $mappingOptions['use_simple_annotation_reader']
+                : true;
+            return $config->newDefaultAnnotationDriver((array) $mappingOptions['path'], $useSimpleAnnotationReader);
+        });
+
+        $container['orm.mapping.factory.yml'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            return new YamlDriver($mappingOptions['path']);
+        });
+
+        $container['orm.mapping.factory.simple_yml'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            return new SimplifiedYamlDriver(array($mappingOptions['path'] => $mappingOptions['namespace']));
+        });
+
+        $container['orm.mapping.factory.xml'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            return new XmlDriver($mappingOptions['path']);
+        });
+
+        $container['orm.mapping.factory.simple_xml'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            return new SimplifiedXmlDriver(array($mappingOptions['path'] => $mappingOptions['namespace']));
+        });
+
+        $container['orm.mapping.factory.php'] = $container->protect(function(Configuration $config, $mappingOptions) {
+            return new StaticPHPDriver($mappingOptions['path']);
+        });
+
+        $container['orm.mapping.factory'] = $container->protect(function ($driver, Configuration $config, $mappingOptions) use ($container) {
+            $mappingFactoryKey = 'orm.mapping.factory.'.$driver;
+            if (!isset($container[$mappingFactoryKey])) {
+                throw new \RuntimeException("Factory '$mappingFactoryKey' for mapping type '$driver' not defined (is it spelled correctly?)");
+            }
+
+            return $container[$mappingFactoryKey]($config, $mappingOptions);
+        });
 
         $container['orm.cache.configurer'] = $container->protect(function ($name, Configuration $config, $options) use ($container) {
             $config->setMetadataCacheImpl($container['orm.cache.locator']($name, 'metadata', $options));
