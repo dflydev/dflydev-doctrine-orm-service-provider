@@ -301,7 +301,7 @@ $loader = require __DIR__ . '/../vendor/autoload.php';
 
 ### Why is there no manager registry implementation?
 
-There is allready a thirdparty `ManagerRegistry` implementation at [saxulum-doctrine-orm-manager-registry-provider][7].
+There is already a thirdparty `ManagerRegistry` implementation at [saxulum-doctrine-orm-manager-registry-provider][7].
 It support the `entity` type known of the form component, adds the `UniqueEntity` validator and a command line integration.
 
 
