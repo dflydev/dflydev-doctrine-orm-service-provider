@@ -234,6 +234,8 @@ Configuration
    `Doctrine\ORM\Mapping\EntityListenerResolver`.
  * **orm.default_cache**:
    String or array describing default cache implementation.
+   * Available cache implementations, one of `array`, `filesystem`, `apc`, `apcu`, `memcache`, `memcached`, `redis`,
+     `xcache` or `couchbase`. Some implementations may require more configuration than others.
  * **orm.add_mapping_driver**:
    Function providing the ability to add a mapping driver to an Entity Manager.
 

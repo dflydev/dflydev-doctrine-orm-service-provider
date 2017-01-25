@@ -21,6 +21,9 @@
         "pimple/pimple": ">=2.1,<4",
         "doctrine/orm": "~2.3"
     },
+    "require-dev": {
+        "phpunit/phpunit" : "~4.0"
+    },
     "autoload": {
         "psr-4": {
             "Dflydev\\Provider\\DoctrineOrm\\": "src/Dflydev/Provider/DoctrineOrm"

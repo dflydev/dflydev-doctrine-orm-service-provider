@@ -12,6 +12,7 @@
 namespace Dflydev\Provider\DoctrineOrm;
 
 use Doctrine\Common\Cache\ApcCache;
+use Doctrine\Common\Cache\ApcuCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\FilesystemCache;
@@ -319,6 +320,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
         $container['orm.cache.factory.apc'] = $container->protect(function () {
             return new ApcCache;
+        });
+
+        $container['orm.cache.factory.apcu'] = $container->protect(function () {
+            return new ApcuCache;
         });
 
         $container['orm.cache.factory.xcache'] = $container->protect(function () {
