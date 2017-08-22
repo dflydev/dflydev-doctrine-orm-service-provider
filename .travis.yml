@@ -3,16 +3,15 @@ language: php
 sudo: false
 
 php:
-  - 5.3.3
-  - 5.3
-  - 5.4
-  - 5.5
+  - 7.0
+  - 7.1
 
 cache:
-  directories:
-    - $HOME/.composer/cache
+    directories:
+        - "$HOME/.composer"
 
 before_script:
-  - composer install --prefer-dist
+  - composer validate
+  - composer install --dev --no-interaction --prefer-dist
 
 script: phpunit --coverage-text --verbose
