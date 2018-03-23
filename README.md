@@ -245,7 +245,7 @@ Configuration
       Namespace to be mapped by `$mappingDriver`, string.
     * **$name**:
       Name of Entity Manager to add mapping to, string, default `null`.
- * **orm.em_name_from_param**:
+ * **orm.em_name_from_param_key**:
    Function providing the ability to retrieve an entity manager's name from
    a param.
 
@@ -257,7 +257,7 @@ Configuration
 
    ```php
    <?php
-   $emName = $app['orm.em_name_from_param']('3rdparty.provider.em');
+   $emName = $app['orm.em_name_from_param_key']('3rdparty.provider.em');
    $em = $app['orm.ems'][$emName];
    ```
 
