@@ -19,7 +19,8 @@
     "require": {
         "php": ">=5.3.3",
         "pimple/pimple": ">=2.1,<4",
-        "doctrine/orm": "~2.3"
+        "doctrine/orm": "~2.3",
+        "doctrine/cache": "^1.11.3"
     },
     "autoload": {
         "psr-4": {
