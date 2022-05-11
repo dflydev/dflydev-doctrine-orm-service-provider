@@ -28,6 +28,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
+use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\Driver\Driver;
 use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
 use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
@@ -163,6 +164,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                     }
 
                     switch ($entity['type']) {
+                        case 'attribute':
+                            $driver = new AttributeDriver(array($entity['path']));
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
                         case 'annotation':
                             $useSimpleAnnotationReader =
                                 isset($entity['use_simple_annotation_reader'])
