@@ -1,2 +1,10 @@
+# System, IDE, ...
+.DS_Store
+.idea
+.vagrant
+.bundle
+
+# Composer
+composer.phar
 composer.lock
 vendor

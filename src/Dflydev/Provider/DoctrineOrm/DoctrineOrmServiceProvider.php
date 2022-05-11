@@ -20,14 +20,15 @@ use Doctrine\Common\Cache\MemcachedCache;
 use Doctrine\Common\Cache\CouchbaseCache;
 use Doctrine\Common\Cache\XcacheCache;
 use Doctrine\Common\Cache\RedisCache;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\DefaultEntityListenerResolver;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
+use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\Driver\Driver;
 use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
 use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
@@ -163,6 +164,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                     }
 
                     switch ($entity['type']) {
+                        case 'attribute':
+                            $driver = new AttributeDriver(array($entity['path']));
+                            $chain->addDriver($driver, $entity['namespace']);
+                            break;
                         case 'annotation':
                             $useSimpleAnnotationReader =
                                 isset($entity['use_simple_annotation_reader'])
@@ -245,8 +250,12 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
             $cache = $container['orm.cache.factory']($driver, $options[$cacheNameKey]);
 
-            if (isset($options['cache_namespace']) && $cache instanceof CacheProvider) {
-                $cache->setNamespace($options['cache_namespace']);
+            if ($cache instanceof CacheProvider) {
+                if (isset($options[$cacheNameKey]['namespace'])) {
+                    $cache->setNamespace($options[$cacheNameKey]['namespace']);
+                } elseif (isset($options['cache_namespace'])) {
+                    $cache->setNamespace($options['cache_namespace']);
+                }
             }
 
             return $container[$cacheInstanceKey] = $cache;
@@ -305,6 +314,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
             if (isset($cacheOptions['password'])) {
                 $redis->auth($cacheOptions['password']);
+            }
+
+            if (isset($cacheOptions['database'])) {
+                $redis->select($cacheOptions['database']);
             }
 
             $cache = new RedisCache;
