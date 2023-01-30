@@ -306,11 +306,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return $cache;
         });
 
-        $container['orm.cache.factory.array'] = $container->protect(function () {
+        $container['orm.cache.factory.array'] = $container->protect(function ($cacheOptions) {
             return new ArrayAdapter();
         });
 
-        $container['orm.cache.factory.apc'] = $container->protect(function () {
+        $container['orm.cache.factory.apc'] = $container->protect(function ($cacheOptions) {
             return new ApcuAdapter($cacheOptions['namespace']);
         });
 
