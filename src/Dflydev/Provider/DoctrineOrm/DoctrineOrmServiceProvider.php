@@ -11,15 +11,7 @@
 
 namespace Dflydev\Provider\DoctrineOrm;
 
-use Doctrine\Common\Cache\ApcCache;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\FilesystemCache;
-use Doctrine\Common\Cache\MemcacheCache;
-use Doctrine\Common\Cache\MemcachedCache;
-use Doctrine\Common\Cache\CouchbaseCache;
-use Doctrine\Common\Cache\XcacheCache;
-use Doctrine\Common\Cache\RedisCache;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\DBAL\Types\Type;
@@ -34,10 +26,17 @@ use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
 use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
-use Doctrine\ORM\Mapping\Driver\StaticPHPDriver;
+use Doctrine\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
+use Symfony\Component\Cache\Adapter\ApcuAdapter;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\CouchbaseBucketAdapter;
+use Symfony\Component\Cache\Adapter\CouchbaseCollectionAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\MemcachedAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 
 /**
  * Doctrine ORM Pimple Service Provider.
@@ -169,19 +168,11 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'annotation':
-                            $useSimpleAnnotationReader =
-                                isset($entity['use_simple_annotation_reader'])
-                                ? $entity['use_simple_annotation_reader']
-                                : true;
-                            $driver = $config->newDefaultAnnotationDriver((array) $entity['path'], $useSimpleAnnotationReader);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'yml':
-                            $driver = new YamlDriver($entity['path']);
-                            $chain->addDriver($driver, $entity['namespace']);
-                            break;
-                        case 'simple_yml':
-                            $driver = new SimplifiedYamlDriver(array($entity['path'] => $entity['namespace']));
+                            $annotationsCache = null;
+                            if ($entity['cache'] !== null) {
+                                $annotationsCache = $entity['cache'];
+                            }
+                            $driver = ORMSetup::createDefaultAnnotationDriver((array) $entity['path'], $annotationsCache);
                             $chain->addDriver($driver, $entity['namespace']);
                             break;
                         case 'xml':
@@ -218,10 +209,10 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
         };
 
         $container['orm.cache.configurer'] = $container->protect(function ($name, Configuration $config, $options) use ($container) {
-            $config->setMetadataCacheImpl($container['orm.cache.locator']($name, 'metadata', $options));
-            $config->setQueryCacheImpl($container['orm.cache.locator']($name, 'query', $options));
-            $config->setResultCacheImpl($container['orm.cache.locator']($name, 'result', $options));
-            $config->setHydrationCacheImpl($container['orm.cache.locator']($name, 'hydration', $options));
+            $config->setMetadataCache($container['orm.cache.locator']($name, 'metadata', $options));
+            $config->setQueryCache($container['orm.cache.locator']($name, 'query', $options));
+            $config->setResultCache($container['orm.cache.locator']($name, 'result', $options));
+            $config->setHydrationCache($container['orm.cache.locator']($name, 'hydration', $options));
         });
 
         $container['orm.cache.locator'] = $container->protect(function ($name, $cacheName, $options) use ($container) {
@@ -250,14 +241,6 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
 
             $cache = $container['orm.cache.factory']($driver, $options[$cacheNameKey]);
 
-            if ($cache instanceof CacheProvider) {
-                if (isset($options[$cacheNameKey]['namespace'])) {
-                    $cache->setNamespace($options[$cacheNameKey]['namespace']);
-                } elseif (isset($options['cache_namespace'])) {
-                    $cache->setNamespace($options['cache_namespace']);
-                }
-            }
-
             return $container[$cacheInstanceKey] = $cache;
         });
 
@@ -274,8 +257,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $memcache = $container['orm.cache.factory.backing_memcache']();
             $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
 
-            $cache = new MemcacheCache;
-            $cache->setMemcache($memcache);
+            $cache = new MemcachedAdapter($memcache, $cacheOptions['namespace']);
 
             return $cache;
         });
@@ -293,8 +275,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             $memcached = $container['orm.cache.factory.backing_memcached']();
             $memcached->addServer($cacheOptions['host'], $cacheOptions['port']);
 
-            $cache = new MemcachedCache;
-            $cache->setMemcached($memcached);
+            $cache = new MemcachedAdapter($memcached, $cacheOptions['namespace']);
 
             return $cache;
         });
@@ -320,22 +301,17 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 $redis->select($cacheOptions['database']);
             }
 
-            $cache = new RedisCache;
-            $cache->setRedis($redis);
+            $cache = new RedisAdapter($redis, $cacheOptions['namespace']);
 
             return $cache;
         });
 
         $container['orm.cache.factory.array'] = $container->protect(function () {
-            return new ArrayCache;
+            return new ArrayAdapter();
         });
 
         $container['orm.cache.factory.apc'] = $container->protect(function () {
-            return new ApcCache;
-        });
-
-        $container['orm.cache.factory.xcache'] = $container->protect(function () {
-            return new XcacheCache;
+            return new ApcuAdapter($cacheOptions['namespace']);
         });
 
         $container['orm.cache.factory.filesystem'] = $container->protect(function ($cacheOptions) {
@@ -343,35 +319,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                 throw new \RuntimeException('FilesystemCache path not defined');
             }
 
-            $cacheOptions += array(
-                'extension' => FilesystemCache::EXTENSION,
-                'umask' => 0002,
-            );
-            return new FilesystemCache($cacheOptions['path'], $cacheOptions['extension'], $cacheOptions['umask']);
-        });
-
-        $container['orm.cache.factory.couchbase'] = $container->protect(function($cacheOptions){
-          $host='';
-          $bucketName='';
-          $user='';
-          $password='';
-          if (empty($cacheOptions['host'])) {
-            $host='127.0.0.1';
-          }
-          if (empty($cacheOptions['bucket'])) {
-            $bucketName='default';
-          }
-          if (!empty($cacheOptions['user'])) {
-            $user=$cacheOptions['user'];
-          }
-          if (!empty($cacheOptions['password'])) {
-            $password=$cacheOptions['password'];
-          }
-
-          $couchbase = new \Couchbase($host,$user,$password,$bucketName);
-          $cache = new CouchbaseCache();
-          $cache->setCouchbase($couchbase);
-          return $cache;
+            return new FilesystemAdapter($cacheOptions['namespace'], 0, $cacheOptions['path']);
         });
 
         $container['orm.cache.factory'] = $container->protect(function ($driver, $cacheOptions) use ($container) {
