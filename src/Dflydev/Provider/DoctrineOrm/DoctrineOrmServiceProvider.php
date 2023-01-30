@@ -169,7 +169,7 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
                             break;
                         case 'annotation':
                             $annotationsCache = null;
-                            if ($entity['cache'] !== null) {
+                            if (array_key_exists('cache', $entity) && $entity['cache'] !== null) {
                                 $annotationsCache = $entity['cache'];
                             }
                             $driver = ORMSetup::createDefaultAnnotationDriver((array) $entity['path'], $annotationsCache);

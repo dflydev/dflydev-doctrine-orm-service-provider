@@ -318,7 +318,6 @@ class DoctrineOrmServiceProviderTest extends TestCase
                     'namespace' => $namespace,
                     'path' => __DIR__.'/src/Foo/Entities',
                     'alias' => $alias,
-                    'cache' => null,
                 )
             ),
         );
