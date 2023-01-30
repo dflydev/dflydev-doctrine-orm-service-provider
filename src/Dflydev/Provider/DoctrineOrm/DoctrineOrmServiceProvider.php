@@ -244,24 +244,6 @@ class DoctrineOrmServiceProvider implements ServiceProviderInterface
             return $container[$cacheInstanceKey] = $cache;
         });
 
-        $container['orm.cache.factory.backing_memcache'] = $container->protect(function () {
-            return new \Memcache;
-        });
-
-        $container['orm.cache.factory.memcache'] = $container->protect(function ($cacheOptions) use ($container) {
-            if (empty($cacheOptions['host']) || empty($cacheOptions['port'])) {
-                throw new \RuntimeException('Host and port options need to be specified for memcache cache');
-            }
-
-            /** @var \Memcache $memcache */
-            $memcache = $container['orm.cache.factory.backing_memcache']();
-            $memcache->connect($cacheOptions['host'], $cacheOptions['port']);
-
-            $cache = new MemcachedAdapter($memcache, $cacheOptions['namespace']);
-
-            return $cache;
-        });
-
         $container['orm.cache.factory.backing_memcached'] = $container->protect(function () {
             return new \Memcached;
         });
