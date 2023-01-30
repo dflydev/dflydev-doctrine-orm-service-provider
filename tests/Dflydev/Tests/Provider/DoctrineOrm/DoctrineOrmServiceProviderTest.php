@@ -28,7 +28,7 @@ class DoctrineOrmServiceProviderTest extends TestCase
 
         $eventManager = $this->getMockBuilder(\Doctrine\Common\EventManager::class)->getMock();
         $connection = $this
-            ->getMockBuilder('Doctrine\DBAL\Connection')
+            ->getMockBuilder(\Doctrine\DBAL\Connection::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -68,11 +68,11 @@ class DoctrineOrmServiceProviderTest extends TestCase
         $container->register(new DoctrineOrmServiceProvider());
 
         $this->assertEquals($container['orm.em'], $container['orm.ems']['default']);
-        $this->assertInstanceOf('Symfony\Component\Cache\Adapter\ArrayAdapter', $container['orm.em.config']->getQueryCache());
-        $this->assertInstanceOf('Symfony\Component\Cache\Adapter\ArrayAdapter', $container['orm.em.config']->getResultCache());
-        $this->assertInstanceOf('Symfony\Component\Cache\Adapter\ArrayAdapter', $container['orm.em.config']->getMetadataCache());
-        $this->assertInstanceOf('Symfony\Component\Cache\Adapter\ArrayAdapter', $container['orm.em.config']->getHydrationCache());
-        $this->assertInstanceOf('Doctrine\Persistence\Mapping\Driver\MappingDriverChain', $container['orm.em.config']->getMetadataDriverImpl());
+        $this->assertInstanceOf(\Symfony\Component\Cache\Adapter\ArrayAdapter::class, $container['orm.em.config']->getQueryCache());
+        $this->assertInstanceOf(\Symfony\Component\Cache\Adapter\ArrayAdapter::class, $container['orm.em.config']->getResultCache());
+        $this->assertInstanceOf(\Symfony\Component\Cache\Adapter\ArrayAdapter::class, $container['orm.em.config']->getMetadataCache());
+        $this->assertInstanceOf(\Symfony\Component\Cache\Adapter\ArrayAdapter::class, $container['orm.em.config']->getHydrationCache());
+        $this->assertInstanceOf(\Doctrine\Persistence\Mapping\Driver\MappingDriverChain::class, $container['orm.em.config']->getMetadataDriverImpl());
     }
 
     /**
@@ -139,7 +139,7 @@ class DoctrineOrmServiceProviderTest extends TestCase
         $container['orm.default_repository_class'] = $entityRepositoryClassName;
         $container['orm.entity_listener_resolver'] = $entityListenerResolver;
         $container['orm.repository_factory'] = $repositoryFactory;
-        $container['orm.custom.hydration_modes'] = array('mymode' => 'Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator');
+        $container['orm.custom.hydration_modes'] = array('mymode' => \Doctrine\ORM\Internal\Hydration\SimpleObjectHydrator::class);
 
         $this->assertEquals('/path/to/proxies', $container['orm.em.config']->getProxyDir());
         $this->assertEquals('TestDoctrineOrmProxiesNamespace', $container['orm.em.config']->getProxyNamespace());
